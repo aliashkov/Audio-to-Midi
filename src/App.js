@@ -1,15 +1,12 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { BasicPitch } from '@spotify/basic-pitch';
-import {
-  addPitchBendsToNoteEvents,
-  noteFramesToTime,
-  outputToNotesPoly
-} from '@spotify/basic-pitch';
+import { addPitchBendsToNoteEvents, noteFramesToTime, outputToNotesPoly } from '@spotify/basic-pitch';
 import { downloadMidiFile } from './utils/downloadMidiFile';
 import { generateFileData } from './utils/generateFileData';
 import { decodeDataToAudioBuffer } from './utils/decodeDataToAudioBuffer';
 import './App.css';
 import Recorder from 'recorder-js';
+import WaveSurfer from 'wavesurfer.js';
 
 function App() {
   const [fileInfo, setFileInfo] = useState({ name: '', duration: '' });
@@ -19,16 +16,34 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const recorderRef = useRef(null);
+  const wavesurferRef = useRef(null);
+
+  useEffect(() => {
+    if (arrayFileBuffer) {
+      const audioContext = new AudioContext();
+      audioContext.decodeAudioData(arrayFileBuffer.slice(0)).then(audioBuffer => {
+        const blob = new Blob([arrayFileBuffer], { type: 'audio/wav' });
+        const url = URL.createObjectURL(blob);
+        if (wavesurferRef.current) {
+          wavesurferRef.current.destroy();
+        }
+        wavesurferRef.current = WaveSurfer.create({
+          container: '#waveform',
+          waveColor: '#007bff',
+          progressColor: '#007bff',
+          height: '80',
+        });
+        wavesurferRef.current.load(url);
+      });
+    }
+  }, [arrayFileBuffer]);
 
   const loadFile = async (event) => {
     const file = event.target.files[0];
-    console.log(file);
-
     const allowedExtensions = /\.(wav|mp3|ogg|flac)$/i;
 
     if (file && allowedExtensions.test(file.name)) {
       const arrayBuffer = await file.arrayBuffer();
-
       const audioContext = new AudioContext();
       try {
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
@@ -52,17 +67,14 @@ function App() {
       recorder.init(stream);
       recorderRef.current = recorder;
     }
-
     recorderRef.current.start();
     setIsRecording(true);
   };
 
   const stopRecording = async () => {
     const { blob } = await recorderRef.current.stop();
-
     const file = new File([blob], `recording-${new Date().toISOString().slice(0, 10)}.mp3`);
     const arrayBuffer = await file.arrayBuffer();
-
     const audioContext = new AudioContext();
     try {
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
@@ -73,7 +85,6 @@ function App() {
       console.error('Error decoding audio data:', error);
       alert('Error decoding audio data. Please try recording again.');
     }
-
     setIsRecording(false);
   };
 
@@ -145,7 +156,7 @@ function App() {
           onClick={() => document.getElementById('fileInput').click()}
           disabled={isLoading}
         >
-          Load File
+          Upload File
         </button>
         <input
           type="file"
@@ -161,15 +172,18 @@ function App() {
           {isRecording ? 'Stop Recording' : 'Start Recording'}
         </button>
       </div>
+      
       {fileInfo.name && (
         <div className="file-info">
           <p><span>File Name:</span> {fileInfo.name}</p>
           <p><span>Duration:</span> {fileInfo.duration}</p>
+          <div id="waveform"></div>
           <button onClick={generateMidiFile} disabled={isLoading}>
             Generate MIDI File
           </button>
         </div>
       )}
+      
       {isLoading && (
         <div className="loader">
           <p>Processing... {loadingProgress}%</p>

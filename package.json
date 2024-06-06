@@ -12,6 +12,7 @@
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
     "recorder-js": "^1.0.7",
+    "wavesurfer.js": "^7.7.15",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
