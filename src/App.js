@@ -18,11 +18,16 @@ function App() {
 
   const loadFile = async (event) => {
     const file = event.target.files[0];
-    console.log(file)
-    if (file) {
+    console.log(file);
+  
+    const allowedExtensions = /\.(wav|mp3|ogg|flac)$/i;
+  
+    if (file && allowedExtensions.test(file.name)) {
       setFileName(file.name);
       const arrayBuffer = await file.arrayBuffer();
-      setArrayFileBuffer(arrayBuffer)
+      setArrayFileBuffer(arrayBuffer);
+    } else {
+      alert('Please select a file with one of the following formats: .wav, .mp3, .ogg, .flac');
     }
   };
 
@@ -105,7 +110,6 @@ function App() {
       <button onClick={() => document.getElementById('fileInput').click()}>
         Load File
       </button>
-      {fileName && <p>Loaded file: {fileName}</p>}
 
       <button onClick={isRecording ? stopRecording : startRecording}>
         {isRecording ? 'Stop Recording' : 'Start Recording'}
