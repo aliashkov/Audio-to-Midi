@@ -134,41 +134,41 @@ function App() {
   return (
     <div className="App">
       <h1>Audio to MIDI Converter</h1>
-
-      <input
-        type="file"
-        accept=".wav,.mp3,.ogg,.flac"
-        onChange={loadFile}
-        style={{ display: 'none' }}
-        id="fileInput"
-      />
-      <button onClick={() => document.getElementById('fileInput').click()}>
-        Load File
-      </button>
-
-      <button onClick={isRecording ? stopRecording : startRecording}>
-        {isRecording ? 'Stop Recording' : 'Start Recording'}
-      </button>
-
-      {fileName && !isRecording && (
+      <div className="button-container">
+        <button onClick={() => document.getElementById('fileInput').click()}>
+          Load File
+        </button>
+        <input
+          type="file"
+          accept=".wav,.mp3,.ogg,.flac"
+          onChange={loadFile}
+          style={{ display: 'none' }}
+          id="fileInput"
+        />
+        <button onClick={isRecording ? stopRecording : startRecording}>
+          {isRecording ? 'Stop Recording' : 'Start Recording'}
+        </button>
+      </div>
+      {fileName && (
         <div className="file-info">
           <p><span>File Name:</span> {fileName}</p>
           <p><span>Duration:</span> {fileDuration}</p>
+
           <button onClick={generateMidiFile}>
             Generate MIDI File
           </button>
         </div>
       )}
-
       {midiFileData && (
-        <button onClick={downloadFile}>
-          Download File
-        </button>
+        <div className="download-button">
+          <button onClick={downloadFile}>
+            Download File
+          </button>
+        </div>
       )}
     </div>
   );
 }
 
 export default App;
-
 
