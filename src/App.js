@@ -16,6 +16,8 @@ function App() {
   const [isRecording, setIsRecording] = useState(false);
   const [arrayFileBuffer, setArrayFileBuffer] = useState(null);
   const [midiFileData, setMidiFileData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const recorderRef = useRef(null);
 
   const loadFile = async (event) => {
@@ -81,11 +83,13 @@ function App() {
       return;
     }
 
+    setIsLoading(true);
     let audioBuffer;
     try {
       audioBuffer = await decodeDataToAudioBuffer(arrayFileBuffer.slice(0));
     } catch (error) {
       console.error('Error decoding audio buffer:', error);
+      setIsLoading(false);
       return;
     }
 
@@ -106,6 +110,7 @@ function App() {
         },
         (p) => {
           pct = p;
+          setLoadingProgress(Math.floor(p * 100));
         },
       );
 
@@ -121,6 +126,9 @@ function App() {
     } else {
       console.error('Error: audioBuffer is undefined or null');
     }
+
+    setIsLoading(false);
+    setLoadingProgress(0);
   };
 
   const downloadFile = async (e) => {
@@ -133,7 +141,10 @@ function App() {
     <div className="App">
       <h1>Audio to MIDI Converter</h1>
       <div className="button-container">
-        <button onClick={() => document.getElementById('fileInput').click()}>
+        <button
+          onClick={() => document.getElementById('fileInput').click()}
+          disabled={isLoading}
+        >
           Load File
         </button>
         <input
@@ -143,7 +154,10 @@ function App() {
           style={{ display: 'none' }}
           id="fileInput"
         />
-        <button onClick={isRecording ? stopRecording : startRecording}>
+        <button
+          onClick={isRecording ? stopRecording : startRecording}
+          disabled={isLoading}
+        >
           {isRecording ? 'Stop Recording' : 'Start Recording'}
         </button>
       </div>
@@ -151,12 +165,17 @@ function App() {
         <div className="file-info">
           <p><span>File Name:</span> {fileInfo.name}</p>
           <p><span>Duration:</span> {fileInfo.duration}</p>
-          <button onClick={generateMidiFile}>
+          <button onClick={generateMidiFile} disabled={isLoading}>
             Generate MIDI File
           </button>
         </div>
       )}
-      {midiFileData && (
+      {isLoading && (
+        <div className="loader">
+          <p>Processing... {loadingProgress}%</p>
+        </div>
+      )}
+      {midiFileData && !isLoading && (
         <div className="download-button">
           <button onClick={downloadFile}>
             Download File
@@ -168,4 +187,3 @@ function App() {
 }
 
 export default App;
-
