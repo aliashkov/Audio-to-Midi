@@ -12,8 +12,7 @@ import './App.css';
 import Recorder from 'recorder-js';
 
 function App() {
-  const [fileName, setFileName] = useState('');
-  const [fileDuration, setFileDuration] = useState('');
+  const [fileInfo, setFileInfo] = useState({ name: '', duration: '' });
   const [isRecording, setIsRecording] = useState(false);
   const [arrayFileBuffer, setArrayFileBuffer] = useState(null);
   const [midiFileData, setMidiFileData] = useState(null);
@@ -26,14 +25,14 @@ function App() {
     const allowedExtensions = /\.(wav|mp3|ogg|flac)$/i;
 
     if (file && allowedExtensions.test(file.name)) {
-      setFileName(file.name);
       const arrayBuffer = await file.arrayBuffer();
-      setArrayFileBuffer(arrayBuffer);
 
       const audioContext = new AudioContext();
       try {
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
-        setFileDuration(audioBuffer.duration.toFixed(2) + ' seconds');
+        const duration = audioBuffer.duration.toFixed(2) + ' seconds';
+        setFileInfo({ name: file.name, duration: duration });
+        setArrayFileBuffer(arrayBuffer);
       } catch (error) {
         console.error('Error decoding audio data:', error);
         alert('Error decoding audio data. Please try another file.');
@@ -58,17 +57,16 @@ function App() {
 
   const stopRecording = async () => {
     const { blob } = await recorderRef.current.stop();
-    setFileName(`recording-${new Date().toISOString().slice(0, 10)}.mp3`);
 
-    const file = new File([blob], "recording.mp3");
+    const file = new File([blob], `recording-${new Date().toISOString().slice(0, 10)}.mp3`);
     const arrayBuffer = await file.arrayBuffer();
-
-    setArrayFileBuffer(arrayBuffer);
 
     const audioContext = new AudioContext();
     try {
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
-      setFileDuration(audioBuffer.duration.toFixed(2) + ' seconds');
+      const duration = audioBuffer.duration.toFixed(2) + ' seconds';
+      setFileInfo({ name: file.name, duration: duration });
+      setArrayFileBuffer(arrayBuffer);
     } catch (error) {
       console.error('Error decoding audio data:', error);
       alert('Error decoding audio data. Please try recording again.');
@@ -149,11 +147,10 @@ function App() {
           {isRecording ? 'Stop Recording' : 'Start Recording'}
         </button>
       </div>
-      {fileName && (
+      {fileInfo.name && (
         <div className="file-info">
-          <p><span>File Name:</span> {fileName}</p>
-          <p><span>Duration:</span> {fileDuration}</p>
-
+          <p><span>File Name:</span> {fileInfo.name}</p>
+          <p><span>Duration:</span> {fileInfo.duration}</p>
           <button onClick={generateMidiFile}>
             Generate MIDI File
           </button>
