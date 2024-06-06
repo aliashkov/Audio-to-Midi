@@ -24,7 +24,7 @@ function App() {
       const contours = [];
       let pct = 0;
 
-      const basicPitch = new BasicPitch('/model.json');
+      const basicPitch = new BasicPitch('model/model.json');
 
       await basicPitch.evaluateModel(
         audioBuffer.getChannelData(0),
