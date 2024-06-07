@@ -15,9 +15,8 @@ function App() {
   const [midiFileData, setMidiFileData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [scrollingWaveform, setScrollingWaveform] = useState(true);
+  let scrollingWaveform = true
 
-  const recorderRef = useRef(null);
   const wavesurferRef = useRef(null);
   const recordRef = useRef(null);
   const progressRef = useRef(null);
