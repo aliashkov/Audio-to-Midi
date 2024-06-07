@@ -9,14 +9,14 @@ import WaveSurfer from 'wavesurfer.js';
 import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 
 function App() {
-  const [fileInfo, setFileInfo] = useState({ name: '', duration: '', format: '' });
+  const [fileInfo, setFileInfo] = useState({ name: '', duration: ''});
   const [isRecording, setIsRecording] = useState(false);
   const [arrayFileBuffer, setArrayFileBuffer] = useState(null);
   const [midiFileData, setMidiFileData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [scrollingWaveform, setScrollingWaveform] = useState(true);
 
+  const scrollingWaveform = true
   const recorderRef = useRef(null);
   const wavesurferRef = useRef(null);
   const recordRef = useRef(null);
@@ -47,7 +47,7 @@ function App() {
     createWaveSurfer();
   }, [scrollingWaveform]);
 
-  const createWaveSurfer = () => {
+  const createWaveSurfer = async () => {
     if (wavesurferRef.current) {
       wavesurferRef.current.destroy();
     }
@@ -63,12 +63,21 @@ function App() {
       renderRecordedAudio: false,
     }));
 
-    recordRef.current.on('record-end', (blob) => {
+    recordRef.current.on('record-end', async (blob) => {
       const url = URL.createObjectURL(blob);
       wavesurferRef.current.load(url);
-      const format = blob.type.split(';')[0].split('/')[1];
-      const duration = (blob.size / 128000).toFixed(2) + ' seconds'; // Assuming 128 kbps bitrate for MP3
-      setFileInfo({ name: 'Recorded Audio', duration, format });
+      const file = new File([blob], `recording-${new Date().toISOString().slice(0, 10)}.mp3`);
+      const arrayBuffer = await file.arrayBuffer();
+      const audioContext = new AudioContext();
+      try {
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
+        const duration = audioBuffer.duration.toFixed(2) + ' seconds';
+        setFileInfo({ name: file.name, duration: duration });
+        setArrayFileBuffer(arrayBuffer);
+      } catch (error) {
+        console.error('Error decoding audio data:', error);
+        alert('Error decoding audio data. Please try recording again.');
+      }
     });
 
     recordRef.current.on('record-progress', (time) => {
@@ -98,8 +107,7 @@ function App() {
       try {
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
         const duration = audioBuffer.duration.toFixed(2) + ' seconds';
-        const format = file.type.split('/')[1];
-        setFileInfo({ name: file.name, duration, format });
+        setFileInfo({ name: file.name, duration });
         setArrayFileBuffer(arrayBuffer);
       } catch (error) {
         console.error('Error decoding audio data:', error);
@@ -111,9 +119,7 @@ function App() {
   };
 
   const startRecording = async () => {
-    const audioContext = new AudioContext();
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
     if (recordRef.current.isRecording() || recordRef.current.isPaused()) {
       recordRef.current.stopRecording();
       setIsRecording(false);
@@ -223,7 +229,6 @@ function App() {
         <div className="file-info">
           <p><span>File Name:</span> {fileInfo.name}</p>
           <p><span>Duration:</span> {fileInfo.duration}</p>
-          <p><span>Format:</span> {fileInfo.format}</p>
           <div id="waveform"></div>
           <button onClick={generateMidiFile} disabled={isLoading}>
             Generate MIDI File
