@@ -17,7 +17,6 @@ function App() {
   const [loadingProgress, setLoadingProgress] = useState(0);
 
   const scrollingWaveform = true
-  const recorderRef = useRef(null);
   const wavesurferRef = useRef(null);
   const recordRef = useRef(null);
   const progressRef = useRef(null);
@@ -160,7 +159,6 @@ function App() {
       const frames = [];
       const onsets = [];
       const contours = [];
-      let pct = 0;
 
       const basicPitch = new BasicPitch('model/model.json');
 
@@ -172,7 +170,6 @@ function App() {
           contours.push(...c);
         },
         (p) => {
-          pct = p;
           setLoadingProgress(Math.floor(p * 100));
         },
       );
