@@ -99,9 +99,13 @@ function App() {
 
   const loadFile = async (event) => {
     const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
+  
     const allowedExtensions = /\.(wav|mp3|ogg|flac)$/i;
-
-    if (file && allowedExtensions.test(file.name)) {
+  
+    if (allowedExtensions.test(file.name)) {
       const arrayBuffer = await file.arrayBuffer();
       const audioContext = new AudioContext();
       try {
@@ -221,7 +225,6 @@ function App() {
       </div>
       <div>
         <div id="mic" style={{ border: '1px solid #ddd', borderRadius: '4px', marginTop: '1rem' }}></div>
-        <div id="recordings" style={{ margin: '1rem 0' }}></div>
         <p id="progress" ref={progressRef}>00:00</p>
       </div>
 
@@ -230,7 +233,7 @@ function App() {
           <p><span>File Name:</span> {fileInfo.name}</p>
           <p><span>Duration:</span> {fileInfo.duration}</p>
           <div id="waveform"></div>
-          <button onClick={generateMidiFile} disabled={isLoading}>
+          <button onClick={generateMidiFile} disabled={isLoading || isRecording}>
             Generate MIDI File
           </button>
         </div>
