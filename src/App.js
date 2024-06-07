@@ -98,6 +98,7 @@ function App() {
   };
 
   const loadFile = async (event) => {
+    setMidiFileData(null)
     const file = event.target.files[0];
     if (!file) {
       return;
@@ -123,6 +124,7 @@ function App() {
   };
 
   const startRecording = async () => {
+    setMidiFileData(null)
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     if (recordRef.current.isRecording() || recordRef.current.isPaused()) {
       recordRef.current.stopRecording();
