@@ -7,16 +7,25 @@ import { decodeDataToAudioBuffer } from './utils/decodeDataToAudioBuffer';
 import './App.css';
 import WaveSurfer from 'wavesurfer.js';
 import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
+import Slider from './components/Slider';
 
 function App() {
-  const [fileInfo, setFileInfo] = useState({ name: '', duration: ''});
+  const [fileInfo, setFileInfo] = useState({ name: '', duration: '' });
   const [isRecording, setIsRecording] = useState(false);
   const [arrayFileBuffer, setArrayFileBuffer] = useState(null);
   const [midiFileData, setMidiFileData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [sliderValues, setSliderValues] = useState({
+    slider1: 50,
+    slider2: 50,
+    slider3: 50,
+    slider4: 50,
+    slider5: 50,
+    slider6: 50,
+  });
 
-  const scrollingWaveform = true
+  const scrollingWaveform = true;
   const wavesurferRef = useRef(null);
   const recordRef = useRef(null);
   const progressRef = useRef(null);
@@ -97,14 +106,14 @@ function App() {
   };
 
   const loadFile = async (event) => {
-    setMidiFileData(null)
+    setMidiFileData(null);
     const file = event.target.files[0];
     if (!file) {
       return;
     }
-  
+
     const allowedExtensions = /\.(wav|mp3|ogg|flac)$/i;
-  
+
     if (allowedExtensions.test(file.name)) {
       const arrayBuffer = await file.arrayBuffer();
       const audioContext = new AudioContext();
@@ -123,7 +132,7 @@ function App() {
   };
 
   const startRecording = async () => {
-    setMidiFileData(null)
+    setMidiFileData(null);
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     if (recordRef.current.isRecording() || recordRef.current.isPaused()) {
       recordRef.current.stopRecording();
@@ -191,66 +200,112 @@ function App() {
     setLoadingProgress(0);
   };
 
-
   const downloadFile = async (e) => {
     const currentDate = new Date().toISOString().slice(0, 10);
     const midiFileNameWithDate = `generated-midi-file-${currentDate}.mid`;
     await downloadMidiFile(midiFileData, midiFileNameWithDate);
   };
 
+  const handleSliderChange = (e) => {
+    const { name, value } = e.target;
+    setSliderValues(prevValues => ({ ...prevValues, [name]: value }));
+  };
+
   return (
     <div className="App">
       <h1>Audio to MIDI Converter</h1>
-      <div className="button-container">
-        <button
-          onClick={() => document.getElementById('fileInput').click()}
-          disabled={isLoading || isRecording}
-        >
-          Upload File
-        </button>
-        <input
-          type="file"
-          accept=".wav,.mp3,.ogg,.flac"
-          onChange={loadFile}
-          style={{ display: 'none' }}
-          id="fileInput"
-        />
-        <button
-          onClick={isRecording ? stopRecording : startRecording}
-          disabled={isLoading}
-        >
-          {isRecording ? 'Stop Recording' : 'Start Recording'}
-        </button>
+      <div className="container">
+        <div className="left-panel">
+          <div className="button-container">
+            <button
+              onClick={() => document.getElementById('fileInput').click()}
+              disabled={isLoading || isRecording}
+            >
+              Upload File
+            </button>
+            <input
+              type="file"
+              accept=".wav,.mp3,.ogg,.flac"
+              onChange={loadFile}
+              style={{ display: 'none' }}
+              id="fileInput"
+            />
+            <button
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={isLoading}
+            >
+              {isRecording ? 'Stop Recording' : 'Start Recording'}
+            </button>
+          </div>
+          <div>
+            <div id="mic" style={{ border: '1px solid #ddd', borderRadius: '4px', marginTop: '1rem' }}></div>
+            <p id="progress" ref={progressRef}>00:00</p>
+          </div>
+
+          {fileInfo.name && (
+            <div className="file-info">
+              <p><span>File Name:</span> {fileInfo.name}</p>
+              <p><span>Duration:</span> {fileInfo.duration}</p>
+              <div id="waveform"></div>
+              <button onClick={generateMidiFile} disabled={isLoading || isRecording}>
+                Generate MIDI File
+              </button>
+            </div>
+          )}
+
+          {isLoading && (
+            <div className="loader">
+              <p>Processing... {loadingProgress}%</p>
+            </div>
+          )}
+          {midiFileData && !isLoading && (
+            <div className="download-button">
+              <button onClick={downloadFile}>
+                Download File
+              </button>
+            </div>
+          )}
+        </div>
+        <div className="right-panel">
+          <h2>Adjustments</h2>
+          <Slider
+            label="Slider 1"
+            name="slider1"
+            value={sliderValues.slider1}
+            onChange={handleSliderChange}
+          />
+          <Slider
+            label="Slider 2"
+            name="slider2"
+            value={sliderValues.slider2}
+            onChange={handleSliderChange}
+          />
+          <Slider
+            label="Slider 3"
+            name="slider3"
+            value={sliderValues.slider3}
+            onChange={handleSliderChange}
+          />
+          <Slider
+            label="Slider 4"
+            name="slider4"
+            value={sliderValues.slider4}
+            onChange={handleSliderChange}
+          />
+          <Slider
+            label="Slider 5"
+            name="slider5"
+            value={sliderValues.slider5}
+            onChange={handleSliderChange}
+          />
+          <Slider
+            label="Slider 6"
+            name="slider6"
+            value={sliderValues.slider6}
+            onChange={handleSliderChange}
+          />
+        </div>
       </div>
-      <div>
-        <div id="mic" style={{ border: '1px solid #ddd', borderRadius: '4px', marginTop: '1rem' }}></div>
-        <p id="progress" ref={progressRef}>00:00</p>
-      </div>
-
-      {fileInfo.name && (
-        <div className="file-info">
-          <p><span>File Name:</span> {fileInfo.name}</p>
-          <p><span>Duration:</span> {fileInfo.duration}</p>
-          <div id="waveform"></div>
-          <button onClick={generateMidiFile} disabled={isLoading || isRecording}>
-            Generate MIDI File
-          </button>
-        </div>
-      )}
-
-      {isLoading && (
-        <div className="loader">
-          <p>Processing... {loadingProgress}%</p>
-        </div>
-      )}
-      {midiFileData && !isLoading && (
-        <div className="download-button">
-          <button onClick={downloadFile}>
-            Download File
-          </button>
-        </div>
-      )}
-
     </div>
   );
 }
