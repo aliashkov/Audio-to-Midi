@@ -5,8 +5,8 @@ import { downloadMidiFile } from './utils/downloadMidiFile';
 import { generateFileData } from './utils/generateFileData';
 import { decodeDataToAudioBuffer } from './utils/decodeDataToAudioBuffer';
 import './App.css';
-import Recorder from 'recorder-js';
 import WaveSurfer from 'wavesurfer.js';
+import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 
 function App() {
   const [fileInfo, setFileInfo] = useState({ name: '', duration: '' });
@@ -15,8 +15,12 @@ function App() {
   const [midiFileData, setMidiFileData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [scrollingWaveform, setScrollingWaveform] = useState(true);
+
   const recorderRef = useRef(null);
   const wavesurferRef = useRef(null);
+  const recordRef = useRef(null);
+  const progressRef = useRef(null);
 
   useEffect(() => {
     if (arrayFileBuffer) {
@@ -37,6 +41,67 @@ function App() {
       });
     }
   }, [arrayFileBuffer]);
+
+  useEffect(() => {
+    createWaveSurfer();
+  }, [scrollingWaveform]);
+
+  const createWaveSurfer = () => {
+    if (wavesurferRef.current) {
+      wavesurferRef.current.destroy();
+    }
+    wavesurferRef.current = WaveSurfer.create({
+      container: '#mic',
+      waveColor: 'rgb(200, 0, 200)',
+      progressColor: 'rgb(100, 0, 100)',
+    });
+
+    recordRef.current = wavesurferRef.current.registerPlugin(RecordPlugin.create({
+      scrollingWaveform,
+      renderRecordedAudio: false,
+    }));
+
+    recordRef.current.on('record-end', (blob) => {
+      const container = document.querySelector('#recordings');
+      const recordedUrl = URL.createObjectURL(blob);
+
+      const recordedWaveSurfer = WaveSurfer.create({
+        container,
+        waveColor: 'rgb(200, 100, 0)',
+        progressColor: 'rgb(100, 50, 0)',
+        url: recordedUrl,
+      });
+
+      const button = container.appendChild(document.createElement('button'));
+      button.textContent = 'Play';
+      button.onclick = () => recordedWaveSurfer.playPause();
+      recordedWaveSurfer.on('pause', () => (button.textContent = 'Play'));
+      recordedWaveSurfer.on('play', () => (button.textContent = 'Pause'));
+
+      const link = container.appendChild(document.createElement('a'));
+      Object.assign(link, {
+        href: recordedUrl,
+        download: `recording.${blob.type.split(';')[0].split('/')[1] || 'webm'}`,
+        textContent: 'Download recording',
+      });
+    });
+
+    recordRef.current.on('record-progress', (time) => {
+      updateProgress(time);
+    });
+  };
+
+  const updateProgress = (time) => {
+    const formattedTime = [
+      Math.floor((time % 3600000) / 60000), // minutes
+      Math.floor((time % 60000) / 1000), // seconds
+    ]
+      .map((v) => (v < 10 ? '0' + v : v))
+      .join(':');
+    if (progressRef.current) {
+      progressRef.current.textContent = formattedTime;
+    }
+  };
 
   const loadFile = async (event) => {
     const file = event.target.files[0];
@@ -60,31 +125,20 @@ function App() {
   };
 
   const startRecording = async () => {
-    if (!recorderRef.current) {
-      const audioContext = new AudioContext();
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new Recorder(audioContext);
-      recorder.init(stream);
-      recorderRef.current = recorder;
+    const audioContext = new AudioContext();
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    if (recordRef.current.isRecording() || recordRef.current.isPaused()) {
+      recordRef.current.stopRecording();
+      setIsRecording(false);
+    } else {
+      recordRef.current.startRecording({ stream });
+      setIsRecording(true);
     }
-    recorderRef.current.start();
-    setIsRecording(true);
   };
 
   const stopRecording = async () => {
-    const { blob } = await recorderRef.current.stop();
-    const file = new File([blob], `recording-${new Date().toISOString().slice(0, 10)}.mp3`);
-    const arrayBuffer = await file.arrayBuffer();
-    const audioContext = new AudioContext();
-    try {
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer.slice(0));
-      const duration = audioBuffer.duration.toFixed(2) + ' seconds';
-      setFileInfo({ name: file.name, duration: duration });
-      setArrayFileBuffer(arrayBuffer);
-    } catch (error) {
-      console.error('Error decoding audio data:', error);
-      alert('Error decoding audio data. Please try recording again.');
-    }
+    recordRef.current.stopRecording();
     setIsRecording(false);
   };
 
@@ -142,10 +196,10 @@ function App() {
     setLoadingProgress(0);
   };
 
-  const downloadFile = async (e) => {
+  const downloadFile = () => {
     const currentDate = new Date().toISOString().slice(0, 10);
     const midiFileNameWithDate = `generated-midi-file-${currentDate}.mid`;
-    await downloadMidiFile(midiFileData, midiFileNameWithDate);
+    downloadMidiFile(midiFileData, midiFileNameWithDate);
   };
 
   return (
@@ -172,6 +226,12 @@ function App() {
           {isRecording ? 'Stop Recording' : 'Start Recording'}
         </button>
       </div>
+
+      <div>
+        <div id="mic" style={{border: '1px solid #ddd', borderRadius: '4px', marginTop: '1rem'}}></div>
+        <div id="recordings" style={{margin: '1rem 0'}}></div>
+        <p id="progress" ref={progressRef}>00:00</p>
+      </div>
       
       {fileInfo.name && (
         <div className="file-info">
@@ -196,6 +256,7 @@ function App() {
           </button>
         </div>
       )}
+      
     </div>
   );
 }
