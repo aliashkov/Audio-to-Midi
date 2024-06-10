@@ -367,6 +367,8 @@ function App() {
               name="slider6"
               value={sliderValues.slider6}
               onChange={handleSliderChange}
+              minLabel="Lower value"
+              maxLabel="Higher value"
               description="Adjusts the tempo of the MIDI file"
               min={24}
               max={224}
