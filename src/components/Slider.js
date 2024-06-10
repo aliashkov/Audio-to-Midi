@@ -1,19 +1,26 @@
 import React from 'react';
+import './styles.css';
 
 const Slider = ({ label, name, value, onChange }) => {
   return (
     <div className="slider-container">
-      <label>
+      <label className="slider-label">
         {label}
-        <input
-          type="range"
-          name={name}
-          min="0"
-          max="100"
-          value={value}
-          onChange={onChange}
-        />
       </label>
+      <div className="slider-input-container">
+        <span className="slider-min">Min</span>
+        <input 
+          type="range" 
+          name={name} 
+          min="0" 
+          max="100" 
+          value={value} 
+          onChange={onChange} 
+          className="slider-input"
+        />
+        <span className="slider-max">Max</span>
+      </div>
+      <div className="slider-value">{value}</div>
     </div>
   );
 };

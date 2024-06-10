@@ -1,0 +1,33 @@
+.slider-container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+  }
+  
+  .slider-label {
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  
+  .slider-input-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .slider-min, .slider-max {
+    font-size: 0.9em;
+    color: #666;
+  }
+  
+  .slider-input {
+    flex: 1;
+    margin: 0 10px;
+  }
+  
+  .slider-value {
+    text-align: center;
+    font-weight: bold;
+    color: #007bff;
+  }

@@ -5,7 +5,7 @@
   background: white;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   max-width: 1000px; /* Increase max-width to fit both panels */
-  width: 110%; /* Make the container take up most of the available width */
+  width: 120%; /* Make the container take up most of the available width */
   margin: auto;
 }
 
@@ -18,12 +18,12 @@
 }
 
 .left-panel {
-  width: 65%; 
+  width: 65%;
   border-right: 1px solid #ddd;
 }
 
 .right-panel {
-  width: 35%; 
+  width: 35%;
   text-align: left;
 }
 
@@ -73,17 +73,4 @@ button:disabled {
 
 .download-button {
   margin-top: 20px;
-}
-
-.slider-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.slider-container label {
-  margin-bottom: 10px;
-}
-
-.slider-container input {
-  width: 100%;
 }

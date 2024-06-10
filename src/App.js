@@ -18,9 +18,9 @@ function App() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [sliderValues, setSliderValues] = useState({
     slider1: 50,
-    slider2: 50,
+    slider2: 25,
     slider3: 50,
-    slider4: 50,
+    slider4: 25,
     slider5: 50,
     slider6: 50,
   });
@@ -95,8 +95,8 @@ function App() {
 
   const updateProgress = (time) => {
     const formattedTime = [
-      Math.floor((time % 3600000) / 60000), // minutes
-      Math.floor((time % 60000) / 1000), // seconds
+      Math.floor((time % 3600000) / 60000),
+      Math.floor((time % 60000) / 1000), 
     ]
       .map((v) => (v < 10 ? '0' + v : v))
       .join(':');
@@ -267,39 +267,38 @@ function App() {
           )}
         </div>
         <div className="right-panel">
-          <h2>Adjustments</h2>
           <Slider
-            label="Slider 1"
+            label="Note Segmentation"
             name="slider1"
             value={sliderValues.slider1}
             onChange={handleSliderChange}
           />
           <Slider
-            label="Slider 2"
+            label="Model Confidence Threshold"
             name="slider2"
             value={sliderValues.slider2}
             onChange={handleSliderChange}
           />
           <Slider
-            label="Slider 3"
+            label="Minimum Pitch"
             name="slider3"
             value={sliderValues.slider3}
             onChange={handleSliderChange}
           />
           <Slider
-            label="Slider 4"
+            label="Maximum Pitch"
             name="slider4"
             value={sliderValues.slider4}
             onChange={handleSliderChange}
           />
           <Slider
-            label="Slider 5"
+            label="Minimum Note Length"
             name="slider5"
             value={sliderValues.slider5}
             onChange={handleSliderChange}
           />
           <Slider
-            label="Slider 6"
+            label="MIDI File Tempo"
             name="slider6"
             value={sliderValues.slider6}
             onChange={handleSliderChange}
