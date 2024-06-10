@@ -17,8 +17,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [sliderValues, setSliderValues] = useState({
-    slider1: 50,
-    slider2: 20,
+    slider1: 0.5,
+    slider2: 0.5,
     slider3: 0,
     slider4: 3000,
     slider5: 11,
@@ -276,6 +276,9 @@ function App() {
               minLabel="Split Notes"
               maxLabel="Merge Notes"
               description="Controls the segmentation of notes"
+              min={0.05}
+              max={1}
+              step={0.05}
             />
             <Slider
               label="Model Confidence Threshold"
@@ -285,6 +288,9 @@ function App() {
               minLabel="More Notes"
               maxLabel="Fewer Notes"
               description="Sets the confidence threshold for the model"
+              min={0.05}
+              max={1}
+              step={0.05}
             />
           </div>
           <div className="slider-row">
@@ -296,6 +302,9 @@ function App() {
               minLabel="Lower notes"
               maxLabel="Higher notes"
               description="Specifies the minimum pitch value"
+              min={0}
+              max={2000}
+              step={10}
             />
             <Slider
               label="Maximum Pitch"
@@ -305,6 +314,9 @@ function App() {
               minLabel="Lower notes"
               maxLabel="Higher notes"
               description="Specifies the maximum pitch value"
+              min={40}
+              max={3000}
+              step={10}
             />
           </div>
           <div className="slider-row">
@@ -316,6 +328,9 @@ function App() {
               minLabel="Short Notes"
               maxLabel="Long Notes"
               description="Defines the minimum length of notes"
+              min={3}
+              max={50}
+              step={1}
             />
             <Slider
               label="MIDI File Tempo"
@@ -323,6 +338,9 @@ function App() {
               value={sliderValues.slider6}
               onChange={handleSliderChange}
               description="Adjusts the tempo of the MIDI file"
+              min={24}
+              max={224}
+              step={1}
             />
           </div>
         </div>

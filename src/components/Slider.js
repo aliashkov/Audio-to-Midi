@@ -1,7 +1,7 @@
 import React from 'react';
 import './styles.css';
 
-const Slider = ({ label, name, value, onChange, minLabel, maxLabel, description }) => {
+const Slider = ({ label, name, value, onChange, minLabel, maxLabel, description, min, max, step }) => {
   return (
     <div className="slider-container">
       <label className="slider-label">
@@ -15,8 +15,9 @@ const Slider = ({ label, name, value, onChange, minLabel, maxLabel, description 
         <input 
           type="range" 
           name={name} 
-          min="0" 
-          max="100" 
+          min={min} 
+          max={max} 
+          step={step}
           value={value} 
           onChange={onChange} 
           className="slider-input"
