@@ -30,6 +30,7 @@
   
   .slider-input {
     flex: 1;
+    max-width: 150px;
     margin: 0 10px;
   }
   
