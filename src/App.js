@@ -18,12 +18,16 @@ function App() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [sliderValues, setSliderValues] = useState({
     slider1: 0.5,
-    slider2: 0.5,
+    slider2: 0.3,
     slider3: 0,
     slider4: 3000,
     slider5: 11,
     slider6: 120,
   });
+
+  const [framesData, setFramesData] = useState(null);
+  const [onsetsData, setOnsetsData] = useState(null);
+  const [contoursData, setContoursData] = useState(null);
 
   const scrollingWaveform = true;
   const wavesurferRef = useRef(null);
@@ -50,6 +54,23 @@ function App() {
       });
     }
   }, [arrayFileBuffer]);
+
+  useEffect(() => {
+    if (framesData && onsetsData && contoursData) {
+      const notes = noteFramesToTime(
+        addPitchBendsToNoteEvents(
+          contoursData,
+          outputToNotesPoly(framesData, onsetsData, sliderValues['slider1'], sliderValues['slider2'], sliderValues['slider5']),
+        ),
+      );
+
+      console.log(notes)
+  
+      const midiData = generateFileData(notes);
+      setMidiFileData(midiData);
+    }
+
+  }, [framesData, onsetsData, contoursData, sliderValues])
 
   useEffect(() => {
     createWaveSurfer();
@@ -169,7 +190,13 @@ function App() {
       const onsets = [];
       const contours = [];
 
+      let pct = 0;
+
       const basicPitch = new BasicPitch('model/model.json');
+
+      setFramesData(null);
+      setOnsetsData(null);
+      setContoursData(null);
 
       await basicPitch.evaluateModel(
         audioBuffer.getChannelData(0),
@@ -179,19 +206,24 @@ function App() {
           contours.push(...c);
         },
         (p) => {
-          setLoadingProgress(Math.floor(p * 100));
+          pct = p;
+          setLoadingProgress(Math.floor(pct * 100));
         },
       );
 
-      const notes = noteFramesToTime(
-        addPitchBendsToNoteEvents(
-          contours,
-          outputToNotesPoly(frames, onsets, 0.25, 0.25, 5),
-        ),
-      );
+      setFramesData(frames);
+      setOnsetsData(onsets);
+      setContoursData(contours);
 
-      const midiData = generateFileData(notes);
-      setMidiFileData(midiData);
+      /*       const notes = noteFramesToTime(
+              addPitchBendsToNoteEvents(
+                contours,
+                outputToNotesPoly(frames, onsets, 0.25, 0.25, 5),
+              ),
+            );
+      
+            const midiData = generateFileData(notes);
+            setMidiFileData(midiData); */
     } else {
       console.error('Error: audioBuffer is undefined or null');
     }
@@ -301,7 +333,7 @@ function App() {
               onChange={handleSliderChange}
               minLabel="Lower notes"
               maxLabel="Higher notes"
-              description="Specifies the minimum pitch value"
+              description="Specifies the minimum pitch value, Hz"
               min={0}
               max={2000}
               step={10}
@@ -313,7 +345,7 @@ function App() {
               onChange={handleSliderChange}
               minLabel="Lower notes"
               maxLabel="Higher notes"
-              description="Specifies the maximum pitch value"
+              description="Specifies the maximum pitch value, Hz"
               min={40}
               max={3000}
               step={10}
@@ -327,7 +359,7 @@ function App() {
               onChange={handleSliderChange}
               minLabel="Short Notes"
               maxLabel="Long Notes"
-              description="Defines the minimum length of notes"
+              description="Defines the minimum length of notes, in ms"
               min={3}
               max={50}
               step={1}
