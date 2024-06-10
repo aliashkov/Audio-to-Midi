@@ -4,7 +4,6 @@
   border-radius: 10px;
   background: white;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  max-width: 1000px; /* Increase max-width to fit both panels */
   width: 120%; /* Make the container take up most of the available width */
   margin: auto;
 }
@@ -18,13 +17,23 @@
 }
 
 .left-panel {
-  width: 65%;
+  width: 40%;
   border-right: 1px solid #ddd;
 }
 
 .right-panel {
-  width: 35%;
+  width: 60%;
   text-align: left;
+}
+
+.slider-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.slider-container {
+  flex: 1;
+  margin-right: 50px;
 }
 
 button {

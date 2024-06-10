@@ -18,11 +18,11 @@ function App() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [sliderValues, setSliderValues] = useState({
     slider1: 50,
-    slider2: 25,
-    slider3: 50,
-    slider4: 25,
-    slider5: 50,
-    slider6: 50,
+    slider2: 20,
+    slider3: 0,
+    slider4: 3000,
+    slider5: 11,
+    slider6: 120,
   });
 
   const scrollingWaveform = true;
@@ -96,7 +96,7 @@ function App() {
   const updateProgress = (time) => {
     const formattedTime = [
       Math.floor((time % 3600000) / 60000),
-      Math.floor((time % 60000) / 1000), 
+      Math.floor((time % 60000) / 1000),
     ]
       .map((v) => (v < 10 ? '0' + v : v))
       .join(':');
@@ -267,42 +267,66 @@ function App() {
           )}
         </div>
         <div className="right-panel">
-          <Slider
-            label="Note Segmentation"
-            name="slider1"
-            value={sliderValues.slider1}
-            onChange={handleSliderChange}
-          />
-          <Slider
-            label="Model Confidence Threshold"
-            name="slider2"
-            value={sliderValues.slider2}
-            onChange={handleSliderChange}
-          />
-          <Slider
-            label="Minimum Pitch"
-            name="slider3"
-            value={sliderValues.slider3}
-            onChange={handleSliderChange}
-          />
-          <Slider
-            label="Maximum Pitch"
-            name="slider4"
-            value={sliderValues.slider4}
-            onChange={handleSliderChange}
-          />
-          <Slider
-            label="Minimum Note Length"
-            name="slider5"
-            value={sliderValues.slider5}
-            onChange={handleSliderChange}
-          />
-          <Slider
-            label="MIDI File Tempo"
-            name="slider6"
-            value={sliderValues.slider6}
-            onChange={handleSliderChange}
-          />
+          <div className="slider-row">
+            <Slider
+              label="Note Segmentation"
+              name="slider1"
+              value={sliderValues.slider1}
+              onChange={handleSliderChange}
+              minLabel="Min"
+              maxLabel="Max"
+              description="Controls the segmentation of notes"
+            />
+            <Slider
+              label="Model Confidence Threshold"
+              name="slider2"
+              value={sliderValues.slider2}
+              onChange={handleSliderChange}
+              minLabel="Min"
+              maxLabel="Max"
+              description="Sets the confidence threshold for the model"
+            />
+          </div>
+          <div className="slider-row">
+            <Slider
+              label="Minimum Pitch"
+              name="slider3"
+              value={sliderValues.slider3}
+              onChange={handleSliderChange}
+              minLabel="Min"
+              maxLabel="Max"
+              description="Specifies the minimum pitch value"
+            />
+            <Slider
+              label="Maximum Pitch"
+              name="slider4"
+              value={sliderValues.slider4}
+              onChange={handleSliderChange}
+              minLabel="Min"
+              maxLabel="Max"
+              description="Specifies the maximum pitch value"
+            />
+          </div>
+          <div className="slider-row">
+            <Slider
+              label="Minimum Note Length"
+              name="slider5"
+              value={sliderValues.slider5}
+              onChange={handleSliderChange}
+              minLabel="Min"
+              maxLabel="Max"
+              description="Defines the minimum length of notes"
+            />
+            <Slider
+              label="MIDI File Tempo"
+              name="slider6"
+              value={sliderValues.slider6}
+              onChange={handleSliderChange}
+              minLabel="Min"
+              maxLabel="Max"
+              description="Adjusts the tempo of the MIDI file"
+            />
+          </div>
         </div>
       </div>
     </div>
