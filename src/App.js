@@ -273,8 +273,8 @@ function App() {
               name="slider1"
               value={sliderValues.slider1}
               onChange={handleSliderChange}
-              minLabel="Min"
-              maxLabel="Max"
+              minLabel="Split Notes"
+              maxLabel="Merge Notes"
               description="Controls the segmentation of notes"
             />
             <Slider
@@ -282,8 +282,8 @@ function App() {
               name="slider2"
               value={sliderValues.slider2}
               onChange={handleSliderChange}
-              minLabel="Min"
-              maxLabel="Max"
+              minLabel="More Notes"
+              maxLabel="Fewer Notes"
               description="Sets the confidence threshold for the model"
             />
           </div>
@@ -293,8 +293,8 @@ function App() {
               name="slider3"
               value={sliderValues.slider3}
               onChange={handleSliderChange}
-              minLabel="Min"
-              maxLabel="Max"
+              minLabel="Lower notes"
+              maxLabel="Higher notes"
               description="Specifies the minimum pitch value"
             />
             <Slider
@@ -302,8 +302,8 @@ function App() {
               name="slider4"
               value={sliderValues.slider4}
               onChange={handleSliderChange}
-              minLabel="Min"
-              maxLabel="Max"
+              minLabel="Lower notes"
+              maxLabel="Higher notes"
               description="Specifies the maximum pitch value"
             />
           </div>
@@ -313,8 +313,8 @@ function App() {
               name="slider5"
               value={sliderValues.slider5}
               onChange={handleSliderChange}
-              minLabel="Min"
-              maxLabel="Max"
+              minLabel="Short Notes"
+              maxLabel="Long Notes"
               description="Defines the minimum length of notes"
             />
             <Slider
@@ -322,8 +322,6 @@ function App() {
               name="slider6"
               value={sliderValues.slider6}
               onChange={handleSliderChange}
-              minLabel="Min"
-              maxLabel="Max"
               description="Adjusts the tempo of the MIDI file"
             />
           </div>

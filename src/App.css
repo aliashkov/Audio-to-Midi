@@ -4,7 +4,8 @@
   border-radius: 10px;
   background: white;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  width: 120%; /* Make the container take up most of the available width */
+  width: 100%;
+  min-width: 1000px;
   margin: auto;
 }
 
@@ -17,12 +18,12 @@
 }
 
 .left-panel {
-  width: 40%;
+  width: 35%;
   border-right: 1px solid #ddd;
 }
 
 .right-panel {
-  width: 60%;
+  width: 65%;
   text-align: left;
 }
 
@@ -33,7 +34,7 @@
 
 .slider-container {
   flex: 1;
-  margin-right: 50px;
+  /* margin-right: 50px; */
 }
 
 button {
