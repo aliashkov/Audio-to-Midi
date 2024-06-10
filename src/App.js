@@ -64,9 +64,7 @@ function App() {
         ),
       );
 
-      console.log(notes)
-  
-      const midiData = generateFileData(notes);
+      const midiData = generateFileData(notes, sliderValues['slider6']);  // Pass tempo value here
       setMidiFileData(midiData);
     }
 
