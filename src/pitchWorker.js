@@ -4,22 +4,20 @@ import { generateFileData } from './utils/generateFileData';
 import { decodeDataToAudioBuffer } from './utils/decodeDataToAudioBuffer';
 
 globalThis.onmessage = async function(e) {
-  const { arrayFileBuffer, sliderValues } = e.data;
+  const { audioData, sliderValues } = e.data;
 
-  console.log(arrayFileBuffer, sliderValues);
+  console.log(audioData)
 
   try {
-    const audioBuffer = await decodeDataToAudioBuffer(arrayFileBuffer.slice(0));
-    console.log(arrayFileBuffer)
+    // Use the received audio data directly
     const frames = [];
     const onsets = [];
     const contours = [];
 
     const basicPitch = new BasicPitch('model/model.json');
-    console.log(basicPitch)
 
     await basicPitch.evaluateModel(
-      audioBuffer.getChannelData(0),
+      audioData,
       (f, o, c) => {
         frames.push(...f);
         onsets.push(...o);
@@ -34,13 +32,9 @@ globalThis.onmessage = async function(e) {
       ),
     );
 
-    console.log(notes)
-
     const midiData = generateFileData(notes, sliderValues['slider6']); // Pass tempo value here
 
-    console.log(midiData)
-
-
+    // Post the MIDI data back to the main thread
     globalThis.postMessage({ midiData, success: true });
   } catch (error) {
     globalThis.postMessage({ success: false, error: error.message });

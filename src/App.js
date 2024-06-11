@@ -188,52 +188,53 @@ function App() {
       return;
     }
 
-    if (audioBuffer) {
-      const frames = [];
-      const onsets = [];
-      const contours = [];
+    /*     if (audioBuffer) {
+          const frames = [];
+          const onsets = [];
+          const contours = [];
+    
+          let pct = 0;
+    
+          const basicPitch = new BasicPitch('model/model.json');
+    
+          setFramesData(null);
+          setOnsetsData(null);
+          setContoursData(null);
+    
+          await basicPitch.evaluateModel(
+            audioBuffer.getChannelData(0),
+            (f, o, c) => {
+              frames.push(...f);
+              onsets.push(...o);
+              contours.push(...c);
+            },
+            (p) => {
+              pct = p;
+              setLoadingProgress(Math.floor(pct * 100));
+            },
+          );
+    
+          setFramesData(frames);
+          setOnsetsData(onsets);
+          setContoursData(contours);
+    
+        } else {
+          console.error('Error: audioBuffer is undefined or null');
+        }
+    
+        console.log(888)
+    
+        console.log(audioBuffer) */
 
-      let pct = 0;
+    console.log(arrayFileBuffer)
+    console.log(sliderValues)
+    console.log(audioBuffer)
 
-      const basicPitch = new BasicPitch('model/model.json');
+    const string = '5'
 
-      setFramesData(null);
-      setOnsetsData(null);
-      setContoursData(null);
+    const audioData = audioBuffer.getChannelData(0); // Assuming mono audio
 
-      await basicPitch.evaluateModel(
-        audioBuffer.getChannelData(0),
-        (f, o, c) => {
-          frames.push(...f);
-          onsets.push(...o);
-          contours.push(...c);
-        },
-        (p) => {
-          pct = p;
-          setLoadingProgress(Math.floor(pct * 100));
-        },
-      );
-
-      setFramesData(frames);
-      setOnsetsData(onsets);
-      setContoursData(contours);
-
-      /*       const notes = noteFramesToTime(
-              addPitchBendsToNoteEvents(
-                contours,
-                outputToNotesPoly(frames, onsets, 0.25, 0.25, 5),
-              ),
-            );
-      
-            const midiData = generateFileData(notes);
-            setMidiFileData(midiData); */
-    } else {
-      console.error('Error: audioBuffer is undefined or null');
-    }
-
-    console.log(888)
-
-    pitchWorker.postMessage({ arrayFileBuffer, sliderValues });
+    pitchWorker.postMessage({ audioData, sliderValues, string });
 
     setIsLoading(false);
     setLoadingProgress(0);
