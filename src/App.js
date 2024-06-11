@@ -1,10 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useTransition } from 'react';
 import { downloadMidiFile } from './utils/downloadMidiFile';
 import { decodeDataToAudioBuffer } from './utils/decodeDataToAudioBuffer';
 import './App.css';
 import WaveSurfer from 'wavesurfer.js';
 import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 import Slider from './components/Slider';
+
+let isProcessing = false; // Track if a calculation is ongoing
 
 const modelWorker = new Worker(new URL('./modelWorker.js', import.meta.url), { type: 'module' });
 const pitchWorker = new Worker(new URL('./pitchWorker.js', import.meta.url), { type: 'module' });
@@ -36,6 +38,8 @@ function App() {
   const recordRef = useRef(null);
   const progressRef = useRef(null);
 
+  const [isPending, startTransition] = useTransition();
+
   /*   console.log(framesData)
     console.log(onsetsData)
     console.log(contoursData)
@@ -64,13 +68,17 @@ function App() {
 
   useEffect(() => {
     if (framesData && onsetsData && contoursData) {
-      pitchWorker.postMessage({ framesData, onsetsData, contoursData, sliderValues });
+      if (!isProcessing) {
+        // Send data to worker only if no ongoing calculation
+        pitchWorker.postMessage({ framesData, onsetsData, contoursData, sliderValues });
+      }
     }
-  }, [sliderValues, framesData, onsetsData, contoursData]);
+  }, [sliderValues]);
 
   useEffect(() => {
     modelWorker.onmessage = function (e) {
       const { type, progress, midiData, frames, onsets, contours, notes, error, success } = e.data;
+      console.log(8888)
 
       if (type === 'progress') {
         setLoadingProgress(progress);
@@ -224,7 +232,9 @@ function App() {
 
   const handleSliderChange = (e) => {
     const { name, value } = e.target;
-    setSliderValues(prevValues => ({ ...prevValues, [name]: value }));
+    startTransition(() => {
+      setSliderValues(prevValues => ({ ...prevValues, [name]: value }));
+    });
   };
 
   return (
