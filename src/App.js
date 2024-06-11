@@ -64,16 +64,23 @@ function App() {
     }
   }, [sliderValues]);
 
-  pitchWorker.onmessage = (e) => {
-    console.log(111)
-    const { success, midiData, error } = e.data;
-    if (success) {
-      setMidiFileData(midiData);
-    } else {
-      console.error('Error processing pitch data:', error);
-    }
-    setIsLoading(false);
-  };
+  useEffect(() => {
+    pitchWorker.onmessage = function(e) {
+      const { type, percent, midiData, error, success } = e.data;
+
+      if (type === 'progress') {
+        setLoadingProgress(percent);
+      } else if (type === 'result') {
+        if (success) {
+          setMidiFileData(midiData);
+          setIsLoading(false);
+        }
+      } else if (type === 'error') {
+        console.error('Worker error:', error);
+        setIsLoading(false);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     createWaveSurfer();

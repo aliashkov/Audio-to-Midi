@@ -3,7 +3,6 @@ import { addPitchBendsToNoteEvents, noteFramesToTime, outputToNotesPoly } from '
 import { generateFileData } from './utils/generateFileData';
 import { decodeDataToAudioBuffer } from './utils/decodeDataToAudioBuffer';
 
-// Mock window object if it is not defined (i.e., in a worker context)
 if (typeof window === 'undefined') {
   globalThis.window = {};
 }
@@ -11,21 +10,18 @@ if (typeof window === 'undefined') {
 globalThis.onmessage = async function(e) {
   const { audioData, sliderValues } = e.data;
 
-  console.log(audioData);
-
   try {
     const frames = [];
     const onsets = [];
     const contours = [];
 
-    // Define the percentCallback function
     function percentCallback(percent) {
-      console.log(`Processing: ${percent}% done`);
+      const progress = Math.floor(percent * 100)
+      console.log(progress)
+      globalThis.postMessage({ type: 'progress', progress });
     }
 
-    // Fetch the model.json from the external URL
     const modelURL = 'https://raw.githubusercontent.com/aliashkov/Audio-to-Midi/main/public/model/model.json';
-    
     const basicPitch = new BasicPitch(modelURL);
 
     await basicPitch.evaluateModel(
@@ -47,9 +43,8 @@ globalThis.onmessage = async function(e) {
 
     const midiData = generateFileData(notes, sliderValues['slider6']);
 
-    // Post the MIDI data back to the main thread
-    globalThis.postMessage({ midiData, success: true });
+    globalThis.postMessage({ type: 'result', midiData, success: true });
   } catch (error) {
-    globalThis.postMessage({ success: false, error: error.message });
+    globalThis.postMessage({ type: 'error', success: false, error: error.message });
   }
 };
