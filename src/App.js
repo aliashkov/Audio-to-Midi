@@ -76,6 +76,22 @@ function App() {
   }, [sliderValues]);
 
   useEffect(() => {
+    pitchWorker.onmessage = function (e) {
+      const { type, midiData, notes, error, success } = e.data;
+      console.log(type)
+
+      if (type === 'result') {
+        console.log(midiData)
+        console.log(notes)
+      }
+      else if (type === 'error') {
+        console.error('Worker error:', error);
+        setIsLoading(false);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     modelWorker.onmessage = function (e) {
       const { type, progress, midiData, frames, onsets, contours, notes, error, success } = e.data;
       console.log(8888)
