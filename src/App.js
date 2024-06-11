@@ -70,7 +70,7 @@ function App() {
       }
       timeoutRef.current = setTimeout(() => {
         pitchWorker.postMessage({ framesData, onsetsData, contoursData, sliderValues });
-      }, 500);
+      }, 1000);
     }
   }, [contoursData, framesData, onsetsData, sliderValues, dataLoaded]);
 
@@ -80,7 +80,6 @@ function App() {
       if (type === 'result') {
         setNotesData(notes)
         setMidiFileData(midiData);
-        console.log(midiData);
         console.log(notes);
       } else if (type === 'error') {
         console.error('Worker error:', error);
@@ -166,6 +165,7 @@ function App() {
   };
 
   const loadFile = async (event) => {
+    setDataLoaded(false)
     setMidiFileData(null);
     const file = event.target.files[0];
     if (!file) {
@@ -215,6 +215,7 @@ function App() {
     }
 
     setIsLoading(true);
+    setDataLoaded(false)
     let audioBuffer;
     try {
       audioBuffer = await decodeDataToAudioBuffer(arrayFileBuffer.slice(0));
