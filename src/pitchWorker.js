@@ -35,7 +35,7 @@ globalThis.onmessage = async function(e) {
         onsets.push(...o);
         contours.push(...c);
       },
-      percentCallback // Pass the percentCallback function here
+      percentCallback
     );
 
     const notes = noteFramesToTime(
@@ -45,11 +45,7 @@ globalThis.onmessage = async function(e) {
       ),
     );
 
-    console.log(notes)
-
-    const midiData = generateFileData(notes, sliderValues['slider6']); // Pass tempo value here
-
-    console.log(midiData)
+    const midiData = generateFileData(notes, sliderValues['slider6']);
 
     // Post the MIDI data back to the main thread
     globalThis.postMessage({ midiData, success: true });
