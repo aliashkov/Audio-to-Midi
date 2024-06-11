@@ -62,7 +62,7 @@ function App() {
       console.log(22)
       pitchWorker.postMessage({ arrayFileBuffer, sliderValues });
     }
-  }, [framesData, onsetsData, contoursData]);
+  }, [sliderValues]);
 
   pitchWorker.onmessage = (e) => {
     console.log(111)
