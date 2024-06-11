@@ -6,6 +6,7 @@ import WaveSurfer from 'wavesurfer.js';
 import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 import Slider from './components/Slider';
 
+const modelWorker = new Worker(new URL('./modelWorker.js', import.meta.url), { type: 'module' });
 const pitchWorker = new Worker(new URL('./pitchWorker.js', import.meta.url), { type: 'module' });
 
 function App() {
@@ -35,6 +36,11 @@ function App() {
   const recordRef = useRef(null);
   const progressRef = useRef(null);
 
+  /*   console.log(framesData)
+    console.log(onsetsData)
+    console.log(contoursData)
+    console.log(notesData) */
+
   useEffect(() => {
     if (arrayFileBuffer) {
       const audioContext = new AudioContext();
@@ -58,13 +64,12 @@ function App() {
 
   useEffect(() => {
     if (framesData && onsetsData && contoursData) {
-      console.log(22)
-      // pitchWorker.postMessage({ arrayFileBuffer, sliderValues });
+      pitchWorker.postMessage({ framesData, onsetsData, contoursData, sliderValues });
     }
   }, [sliderValues, framesData, onsetsData, contoursData]);
 
   useEffect(() => {
-    pitchWorker.onmessage = function(e) {
+    modelWorker.onmessage = function (e) {
       const { type, progress, midiData, frames, onsets, contours, notes, error, success } = e.data;
 
       if (type === 'progress') {
@@ -205,7 +210,7 @@ function App() {
 
       const audioData = audioBuffer.getChannelData(0); // Assuming mono audio
 
-      pitchWorker.postMessage({ audioData, sliderValues });
+      modelWorker.postMessage({ audioData, sliderValues });
 
     }
 
