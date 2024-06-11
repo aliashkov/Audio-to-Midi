@@ -16,9 +16,9 @@ globalThis.onmessage = async function(e) {
     const contours = [];
 
     function percentCallback(percent) {
-      const progress = Math.floor(percent * 100)
-      console.log(progress)
-      globalThis.postMessage({ type: 'progress', progress });
+      const progress = Math.floor(percent * 100);
+      console.log(progress);
+      globalThis.postMessage({ type: 'progress', progress }); // Updated key to 'percent'
     }
 
     const modelURL = 'https://raw.githubusercontent.com/aliashkov/Audio-to-Midi/main/public/model/model.json';

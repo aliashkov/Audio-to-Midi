@@ -66,10 +66,10 @@ function App() {
 
   useEffect(() => {
     pitchWorker.onmessage = function(e) {
-      const { type, percent, midiData, error, success } = e.data;
+      const { type, progress, midiData, error, success } = e.data;
 
       if (type === 'progress') {
-        setLoadingProgress(percent);
+        setLoadingProgress(progress);
       } else if (type === 'result') {
         if (success) {
           setMidiFileData(midiData);
@@ -233,18 +233,12 @@ function App() {
     
         console.log(audioBuffer) */
 
-    console.log(arrayFileBuffer)
-    console.log(sliderValues)
-    console.log(audioBuffer)
-
-    const string = '5'
-
     const audioData = audioBuffer.getChannelData(0); // Assuming mono audio
 
-    pitchWorker.postMessage({ audioData, sliderValues, string });
+    pitchWorker.postMessage({ audioData, sliderValues });
 
-    setIsLoading(false);
-    setLoadingProgress(0);
+    //setIsLoading(false);
+    //setLoadingProgress(0);
   };
 
   const downloadFile = async (e) => {
