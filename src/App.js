@@ -9,6 +9,8 @@ import WaveSurfer from 'wavesurfer.js';
 import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 import Slider from './components/Slider';
 
+const pitchWorker = new Worker(new URL('./pitchWorker.js', import.meta.url), { type: 'module' });
+
 function App() {
   const [fileInfo, setFileInfo] = useState({ name: '', duration: '' });
   const [isRecording, setIsRecording] = useState(false);
@@ -57,18 +59,21 @@ function App() {
 
   useEffect(() => {
     if (framesData && onsetsData && contoursData) {
-      const notes = noteFramesToTime(
-        addPitchBendsToNoteEvents(
-          contoursData,
-          outputToNotesPoly(framesData, onsetsData, sliderValues['slider1'], sliderValues['slider2'], sliderValues['slider5']),
-        ),
-      );
-
-      const midiData = generateFileData(notes, sliderValues['slider6']);  // Pass tempo value here
-      setMidiFileData(midiData);
+      console.log(22)
+      pitchWorker.postMessage({ arrayFileBuffer, sliderValues });
     }
+  }, [framesData, onsetsData, contoursData]);
 
-  }, [framesData, onsetsData, contoursData, sliderValues])
+  pitchWorker.onmessage = (e) => {
+    console.log(111)
+    const { success, midiData, error } = e.data;
+    if (success) {
+      setMidiFileData(midiData);
+    } else {
+      console.error('Error processing pitch data:', error);
+    }
+    setIsLoading(false);
+  };
 
   useEffect(() => {
     createWaveSurfer();
@@ -225,6 +230,10 @@ function App() {
     } else {
       console.error('Error: audioBuffer is undefined or null');
     }
+
+    console.log(888)
+
+    pitchWorker.postMessage({ arrayFileBuffer, sliderValues });
 
     setIsLoading(false);
     setLoadingProgress(0);

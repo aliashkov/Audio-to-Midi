@@ -13,6 +13,7 @@
     "react-scripts": "5.0.1",
     "recorder-js": "^1.0.7",
     "wavesurfer.js": "^7.7.15",
+    "web-audio-api": "^0.2.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -25,7 +26,16 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "env": {
+      "browser": true,
+      "es2021": true,
+      "worker": true
+    },
+    "globals": {
+      "self": "readonly"
+    },
+    "rules": {}
   },
   "browserslist": {
     "production": [
