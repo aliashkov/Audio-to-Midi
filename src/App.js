@@ -1,13 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { BasicPitch } from '@spotify/basic-pitch';
-import { addPitchBendsToNoteEvents, noteFramesToTime, outputToNotesPoly } from '@spotify/basic-pitch';
+import React, { useState, useRef, useEffect, useTransition } from 'react';
 import { downloadMidiFile } from './utils/downloadMidiFile';
-import { generateFileData } from './utils/generateFileData';
 import { decodeDataToAudioBuffer } from './utils/decodeDataToAudioBuffer';
 import './App.css';
 import WaveSurfer from 'wavesurfer.js';
 import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 import Slider from './components/Slider';
+
+const modelWorker = new Worker(new URL('./modelWorker.js', import.meta.url), { type: 'module' });
+const pitchWorker = new Worker(new URL('./pitchWorker.js', import.meta.url), { type: 'module' });
 
 function App() {
   const [fileInfo, setFileInfo] = useState({ name: '', duration: '' });
@@ -29,10 +29,18 @@ function App() {
   const [onsetsData, setOnsetsData] = useState(null);
   const [contoursData, setContoursData] = useState(null);
 
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  const [notesData, setNotesData] = useState(null)
+
   const scrollingWaveform = true;
   const wavesurferRef = useRef(null);
   const recordRef = useRef(null);
   const progressRef = useRef(null);
+
+  const timeoutRef = useRef(null);
+
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (arrayFileBuffer) {
@@ -56,19 +64,51 @@ function App() {
   }, [arrayFileBuffer]);
 
   useEffect(() => {
-    if (framesData && onsetsData && contoursData) {
-      const notes = noteFramesToTime(
-        addPitchBendsToNoteEvents(
-          contoursData,
-          outputToNotesPoly(framesData, onsetsData, sliderValues['slider1'], sliderValues['slider2'], sliderValues['slider5']),
-        ),
-      );
-
-      const midiData = generateFileData(notes, sliderValues['slider6']);  // Pass tempo value here
-      setMidiFileData(midiData);
+    if (framesData && onsetsData && contoursData && dataLoaded) {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        pitchWorker.postMessage({ framesData, onsetsData, contoursData, sliderValues });
+      }, 1000);
     }
+  }, [contoursData, framesData, onsetsData, sliderValues, dataLoaded]);
 
-  }, [framesData, onsetsData, contoursData, sliderValues])
+  useEffect(() => {
+    pitchWorker.onmessage = function (e) {
+      const { type, midiData, notes, error, success } = e.data;
+      if (type === 'result') {
+        setNotesData(notes)
+        setMidiFileData(midiData);
+        console.log(notes);
+      } else if (type === 'error') {
+        console.error('Worker error:', error);
+        setIsLoading(false);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    modelWorker.onmessage = function (e) {
+      const { type, progress, midiData, frames, onsets, contours, notes, error, success } = e.data;
+
+      if (type === 'progress') {
+        setLoadingProgress(progress);
+      } else if (type === 'result') {
+        if (success) {
+          setFramesData(frames)
+          setOnsetsData(onsets)
+          setContoursData(contours)
+          setNotesData(notes)
+          setMidiFileData(midiData);
+          setIsLoading(false);
+        }
+      } else if (type === 'error') {
+        console.error('Worker error:', error);
+        setIsLoading(false);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     createWaveSurfer();
@@ -125,6 +165,7 @@ function App() {
   };
 
   const loadFile = async (event) => {
+    setDataLoaded(false)
     setMidiFileData(null);
     const file = event.target.files[0];
     if (!file) {
@@ -174,6 +215,7 @@ function App() {
     }
 
     setIsLoading(true);
+    setDataLoaded(false)
     let audioBuffer;
     try {
       audioBuffer = await decodeDataToAudioBuffer(arrayFileBuffer.slice(0));
@@ -184,50 +226,16 @@ function App() {
     }
 
     if (audioBuffer) {
-      const frames = [];
-      const onsets = [];
-      const contours = [];
-
-      let pct = 0;
-
-      const basicPitch = new BasicPitch('model/model.json');
-
       setFramesData(null);
       setOnsetsData(null);
       setContoursData(null);
 
-      await basicPitch.evaluateModel(
-        audioBuffer.getChannelData(0),
-        (f, o, c) => {
-          frames.push(...f);
-          onsets.push(...o);
-          contours.push(...c);
-        },
-        (p) => {
-          pct = p;
-          setLoadingProgress(Math.floor(pct * 100));
-        },
-      );
+      const audioData = audioBuffer.getChannelData(0); // Assuming mono audio
 
-      setFramesData(frames);
-      setOnsetsData(onsets);
-      setContoursData(contours);
+      modelWorker.postMessage({ audioData, sliderValues });
 
-      /*       const notes = noteFramesToTime(
-              addPitchBendsToNoteEvents(
-                contours,
-                outputToNotesPoly(frames, onsets, 0.25, 0.25, 5),
-              ),
-            );
-      
-            const midiData = generateFileData(notes);
-            setMidiFileData(midiData); */
-    } else {
-      console.error('Error: audioBuffer is undefined or null');
     }
 
-    setIsLoading(false);
-    setLoadingProgress(0);
   };
 
   const downloadFile = async (e) => {
@@ -238,7 +246,11 @@ function App() {
 
   const handleSliderChange = (e) => {
     const { name, value } = e.target;
-    setSliderValues(prevValues => ({ ...prevValues, [name]: value }));
+    startTransition(() => {
+      setSliderValues(prevValues => ({ ...prevValues, [name]: value }));
+      setDataLoaded(true);
+    });
+    
   };
 
   return (
