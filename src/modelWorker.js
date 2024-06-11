@@ -1,7 +1,6 @@
 import { BasicPitch } from '@spotify/basic-pitch';
 import { addPitchBendsToNoteEvents, noteFramesToTime, outputToNotesPoly } from '@spotify/basic-pitch';
 import { generateFileData } from './utils/generateFileData';
-import { decodeDataToAudioBuffer } from './utils/decodeDataToAudioBuffer';
 
 if (typeof window === 'undefined') {
   globalThis.window = {};

@@ -6,8 +6,6 @@ import WaveSurfer from 'wavesurfer.js';
 import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 import Slider from './components/Slider';
 
-let isProcessing = false; // Track if a calculation is ongoing
-
 const modelWorker = new Worker(new URL('./modelWorker.js', import.meta.url), { type: 'module' });
 const pitchWorker = new Worker(new URL('./pitchWorker.js', import.meta.url), { type: 'module' });
 
@@ -30,6 +28,8 @@ function App() {
   const [framesData, setFramesData] = useState(null);
   const [onsetsData, setOnsetsData] = useState(null);
   const [contoursData, setContoursData] = useState(null);
+
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   const [notesData, setNotesData] = useState(null)
 
@@ -64,16 +64,15 @@ function App() {
   }, [arrayFileBuffer]);
 
   useEffect(() => {
-    if (framesData && onsetsData && contoursData) {
+    if (framesData && onsetsData && contoursData && dataLoaded) {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
       timeoutRef.current = setTimeout(() => {
         pitchWorker.postMessage({ framesData, onsetsData, contoursData, sliderValues });
-      }, 1000);
-
+      }, 500);
     }
-  }, [contoursData, framesData, onsetsData, sliderValues]);
+  }, [contoursData, framesData, onsetsData, sliderValues, dataLoaded]);
 
   useEffect(() => {
     pitchWorker.onmessage = function (e) {
@@ -248,7 +247,9 @@ function App() {
     const { name, value } = e.target;
     startTransition(() => {
       setSliderValues(prevValues => ({ ...prevValues, [name]: value }));
+      setDataLoaded(true);
     });
+    
   };
 
   return (
