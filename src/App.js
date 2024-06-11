@@ -1,8 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { BasicPitch } from '@spotify/basic-pitch';
-import { addPitchBendsToNoteEvents, noteFramesToTime, outputToNotesPoly } from '@spotify/basic-pitch';
 import { downloadMidiFile } from './utils/downloadMidiFile';
-import { generateFileData } from './utils/generateFileData';
 import { decodeDataToAudioBuffer } from './utils/decodeDataToAudioBuffer';
 import './App.css';
 import WaveSurfer from 'wavesurfer.js';
@@ -30,6 +27,8 @@ function App() {
   const [framesData, setFramesData] = useState(null);
   const [onsetsData, setOnsetsData] = useState(null);
   const [contoursData, setContoursData] = useState(null);
+
+  const [notesData, setNotesData] = useState(null)
 
   const scrollingWaveform = true;
   const wavesurferRef = useRef(null);
@@ -60,18 +59,22 @@ function App() {
   useEffect(() => {
     if (framesData && onsetsData && contoursData) {
       console.log(22)
-      pitchWorker.postMessage({ arrayFileBuffer, sliderValues });
+      // pitchWorker.postMessage({ arrayFileBuffer, sliderValues });
     }
-  }, [sliderValues]);
+  }, [sliderValues, framesData, onsetsData, contoursData]);
 
   useEffect(() => {
     pitchWorker.onmessage = function(e) {
-      const { type, progress, midiData, error, success } = e.data;
+      const { type, progress, midiData, frames, onsets, contours, notes, error, success } = e.data;
 
       if (type === 'progress') {
         setLoadingProgress(progress);
       } else if (type === 'result') {
         if (success) {
+          setFramesData(frames)
+          setOnsetsData(onsets)
+          setContoursData(contours)
+          setNotesData(notes)
           setMidiFileData(midiData);
           setIsLoading(false);
         }
@@ -195,50 +198,17 @@ function App() {
       return;
     }
 
-    /*     if (audioBuffer) {
-          const frames = [];
-          const onsets = [];
-          const contours = [];
-    
-          let pct = 0;
-    
-          const basicPitch = new BasicPitch('model/model.json');
-    
-          setFramesData(null);
-          setOnsetsData(null);
-          setContoursData(null);
-    
-          await basicPitch.evaluateModel(
-            audioBuffer.getChannelData(0),
-            (f, o, c) => {
-              frames.push(...f);
-              onsets.push(...o);
-              contours.push(...c);
-            },
-            (p) => {
-              pct = p;
-              setLoadingProgress(Math.floor(pct * 100));
-            },
-          );
-    
-          setFramesData(frames);
-          setOnsetsData(onsets);
-          setContoursData(contours);
-    
-        } else {
-          console.error('Error: audioBuffer is undefined or null');
-        }
-    
-        console.log(888)
-    
-        console.log(audioBuffer) */
+    if (audioBuffer) {
+      setFramesData(null);
+      setOnsetsData(null);
+      setContoursData(null);
 
-    const audioData = audioBuffer.getChannelData(0); // Assuming mono audio
+      const audioData = audioBuffer.getChannelData(0); // Assuming mono audio
 
-    pitchWorker.postMessage({ audioData, sliderValues });
+      pitchWorker.postMessage({ audioData, sliderValues });
 
-    //setIsLoading(false);
-    //setLoadingProgress(0);
+    }
+
   };
 
   const downloadFile = async (e) => {

@@ -7,7 +7,7 @@ if (typeof window === 'undefined') {
   globalThis.window = {};
 }
 
-globalThis.onmessage = async function(e) {
+globalThis.onmessage = async function (e) {
   const { audioData, sliderValues } = e.data;
 
   try {
@@ -17,8 +17,7 @@ globalThis.onmessage = async function(e) {
 
     function percentCallback(percent) {
       const progress = Math.floor(percent * 100);
-      console.log(progress);
-      globalThis.postMessage({ type: 'progress', progress }); // Updated key to 'percent'
+      globalThis.postMessage({ type: 'progress', progress });
     }
 
     const modelURL = 'https://raw.githubusercontent.com/aliashkov/Audio-to-Midi/main/public/model/model.json';
@@ -34,16 +33,16 @@ globalThis.onmessage = async function(e) {
       percentCallback
     );
 
-    const notes = noteFramesToTime(
+    const notes = await noteFramesToTime(
       addPitchBendsToNoteEvents(
         contours,
         outputToNotesPoly(frames, onsets, sliderValues['slider1'], sliderValues['slider2'], sliderValues['slider5']),
       ),
     );
 
-    const midiData = generateFileData(notes, sliderValues['slider6']);
+    const midiData = await generateFileData(notes, sliderValues['slider6']);
 
-    globalThis.postMessage({ type: 'result', midiData, success: true });
+    globalThis.postMessage({ type: 'result', midiData, frames, onsets, contours, notes, success: true });
   } catch (error) {
     globalThis.postMessage({ type: 'error', success: false, error: error.message });
   }
