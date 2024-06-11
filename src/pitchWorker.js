@@ -4,11 +4,6 @@ import { generateFileData } from './utils/generateFileData';
 globalThis.onmessage = async function (e) {
   const { framesData, onsetsData, contoursData, sliderValues } = e.data;
 
-/*   console.log(framesData)
-  console.log(onsetsData)
-  console.log(contoursData)
-  console.log(sliderValues) */
-
   try {
     const notes = await noteFramesToTime(
       addPitchBendsToNoteEvents(

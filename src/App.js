@@ -38,17 +38,9 @@ function App() {
   const recordRef = useRef(null);
   const progressRef = useRef(null);
 
-  const pitchWorkerRef = useRef(null);
   const timeoutRef = useRef(null);
 
-  console.log(pitchWorkerRef)
-
   const [isPending, startTransition] = useTransition();
-
-  /*   console.log(framesData)
-    console.log(onsetsData)
-    console.log(contoursData)
-    console.log(notesData) */
 
   useEffect(() => {
     if (arrayFileBuffer) {
@@ -77,39 +69,30 @@ function App() {
         clearTimeout(timeoutRef.current);
       }
       timeoutRef.current = setTimeout(() => {
-        if (!pitchWorkerRef.current) {
-          pitchWorkerRef.current = new Worker(new URL('./pitchWorker.js', import.meta.url), { type: 'module' });
-        } else {
-          pitchWorkerRef.current.terminate();
-          pitchWorkerRef.current = new Worker(new URL('./pitchWorker.js', import.meta.url), { type: 'module' });
-        }
-        pitchWorkerRef.current.postMessage({ framesData, onsetsData, contoursData, sliderValues });
+        pitchWorker.postMessage({ framesData, onsetsData, contoursData, sliderValues });
       }, 1000);
+
     }
-  }, [sliderValues, framesData, onsetsData, contoursData]);
+  }, [contoursData, framesData, onsetsData, sliderValues]);
 
   useEffect(() => {
-    if (pitchWorkerRef.current) {
-      pitchWorkerRef.current.onmessage = function (e) {
-        console.log(e.data)
-        const { type, midiData, notes, error, success } = e.data;
-        console.log(type);
-
-        if (type === 'result') {
-          console.log(midiData);
-          console.log(notes);
-        } else if (type === 'error') {
-          console.error('Worker error:', error);
-          setIsLoading(false);
-        }
-      };
-    }
+    pitchWorker.onmessage = function (e) {
+      const { type, midiData, notes, error, success } = e.data;
+      if (type === 'result') {
+        setNotesData(notes)
+        setMidiFileData(midiData);
+        console.log(midiData);
+        console.log(notes);
+      } else if (type === 'error') {
+        console.error('Worker error:', error);
+        setIsLoading(false);
+      }
+    };
   }, []);
 
   useEffect(() => {
     modelWorker.onmessage = function (e) {
       const { type, progress, midiData, frames, onsets, contours, notes, error, success } = e.data;
-      console.log(8888)
 
       if (type === 'progress') {
         setLoadingProgress(progress);
