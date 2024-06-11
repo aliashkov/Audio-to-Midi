@@ -35,7 +35,7 @@ globalThis.onmessage = async function (e) {
     const notes = await noteFramesToTime(
       addPitchBendsToNoteEvents(
         contours,
-        outputToNotesPoly(frames, onsets, sliderValues['slider1'], sliderValues['slider2'], sliderValues['slider5']),
+        outputToNotesPoly(frames, onsets, sliderValues['slider1'], sliderValues['slider2'], sliderValues['slider5'], true,  sliderValues['slider4'],  sliderValues['slider3']),
       ),
     );
 
