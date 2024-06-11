@@ -38,6 +38,11 @@ function App() {
   const recordRef = useRef(null);
   const progressRef = useRef(null);
 
+  const pitchWorkerRef = useRef(null);
+  const timeoutRef = useRef(null);
+
+  console.log(pitchWorkerRef)
+
   const [isPending, startTransition] = useTransition();
 
   /*   console.log(framesData)
@@ -68,27 +73,37 @@ function App() {
 
   useEffect(() => {
     if (framesData && onsetsData && contoursData) {
-      if (!isProcessing) {
-        // Send data to worker only if no ongoing calculation
-        pitchWorker.postMessage({ framesData, onsetsData, contoursData, sliderValues });
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
+      timeoutRef.current = setTimeout(() => {
+        if (!pitchWorkerRef.current) {
+          pitchWorkerRef.current = new Worker(new URL('./pitchWorker.js', import.meta.url), { type: 'module' });
+        } else {
+          pitchWorkerRef.current.terminate();
+          pitchWorkerRef.current = new Worker(new URL('./pitchWorker.js', import.meta.url), { type: 'module' });
+        }
+        pitchWorkerRef.current.postMessage({ framesData, onsetsData, contoursData, sliderValues });
+      }, 1000);
     }
-  }, [sliderValues]);
+  }, [sliderValues, framesData, onsetsData, contoursData]);
 
   useEffect(() => {
-    pitchWorker.onmessage = function (e) {
-      const { type, midiData, notes, error, success } = e.data;
-      console.log(type)
+    if (pitchWorkerRef.current) {
+      pitchWorkerRef.current.onmessage = function (e) {
+        console.log(e.data)
+        const { type, midiData, notes, error, success } = e.data;
+        console.log(type);
 
-      if (type === 'result') {
-        console.log(midiData)
-        console.log(notes)
-      }
-      else if (type === 'error') {
-        console.error('Worker error:', error);
-        setIsLoading(false);
-      }
-    };
+        if (type === 'result') {
+          console.log(midiData);
+          console.log(notes);
+        } else if (type === 'error') {
+          console.error('Worker error:', error);
+          setIsLoading(false);
+        }
+      };
+    }
   }, []);
 
   useEffect(() => {
