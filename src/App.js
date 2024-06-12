@@ -41,6 +41,7 @@ function App() {
   const timeoutRef = useRef(null);
 
   const [isPending, startTransition] = useTransition();
+  const canvasRef = useRef(null);
 
   useEffect(() => {
     if (arrayFileBuffer) {
@@ -80,13 +81,15 @@ function App() {
       if (type === 'result') {
         setNotesData(notes)
         setMidiFileData(midiData);
+        console.log(fileInfo)
+        renderMidiNotes(notes);
         console.log(notes);
       } else if (type === 'error') {
         console.error('Worker error:', error);
         setIsLoading(false);
       }
     };
-  }, []);
+  }, [fileInfo]);
 
   useEffect(() => {
     modelWorker.onmessage = function (e) {
@@ -100,6 +103,8 @@ function App() {
           setOnsetsData(onsets)
           setContoursData(contours)
           setNotesData(notes)
+          console.log(fileInfo)
+          renderMidiNotes(notes);  // Add this line to render MIDI notes
           setMidiFileData(midiData);
           setIsLoading(false);
         }
@@ -108,7 +113,7 @@ function App() {
         setIsLoading(false);
       }
     };
-  }, []);
+  }, [fileInfo]);
 
   useEffect(() => {
     createWaveSurfer();
@@ -250,7 +255,69 @@ function App() {
       setSliderValues(prevValues => ({ ...prevValues, [name]: value }));
       setDataLoaded(true);
     });
-    
+  };
+
+  const renderMidiNotes = (notes) => {
+    const canvas = canvasRef.current;
+    console.log(fileInfo.duration)
+    if (canvas && notes) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const noteHeight = 10;
+      const noteSpacing = 2;
+      const pianoKeyWidth = 20; // Reduced width of piano keys
+      const timeHeight = 20;
+
+      const minTime = 0;
+      const maxTime = parseInt(fileInfo.duration)
+
+      const minMidi = Math.min(...notes.map(note => note.pitchMidi));
+      const maxMidi = Math.max(...notes.map(note => note.pitchMidi));
+
+      const canvasWidth = (maxTime - minTime) * 100; // 100px per second
+      const canvasHeight = 300; // Fixed height of 300px
+
+      canvas.width = canvasWidth + pianoKeyWidth;
+      canvas.height = canvasHeight;
+
+      const drawPianoKeys = () => {
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, timeHeight, pianoKeyWidth, canvasHeight - timeHeight);
+
+        for (let i = minMidi; i <= maxMidi; i++) {
+          const y = canvasHeight - timeHeight - ((i - minMidi) / (maxMidi - minMidi)) * (canvasHeight - timeHeight - noteHeight - noteSpacing);
+          ctx.fillStyle = (i % 12 === 1 || i % 12 === 3 || i % 12 === 6 || i % 12 === 8 || i % 12 === 10) ? '#000' : '#fff';
+          ctx.fillRect(0, y, pianoKeyWidth, noteHeight);
+          ctx.strokeRect(0, y, pianoKeyWidth, noteHeight);
+        }
+      };
+
+      const drawTimeLabels = () => {
+        ctx.fillStyle = '#000';
+        for (let t = minTime; t <= maxTime; t += 1) { // Mark each second
+          const x = pianoKeyWidth + (t - minTime) * 100; // 100px per second
+          ctx.fillText(t.toFixed(2) + 's', x, 15);
+          ctx.beginPath();
+          ctx.moveTo(x, timeHeight);
+          ctx.lineTo(x, canvasHeight);
+          ctx.strokeStyle = '#e0e0e0';
+          ctx.stroke();
+        }
+      };
+
+      drawPianoKeys();
+      drawTimeLabels();
+
+      notes.forEach((note) => {
+        const x = pianoKeyWidth + (note.startTimeSeconds - minTime) * 100; // 100px per second
+        const y = canvasHeight - timeHeight - ((note.pitchMidi - minMidi) / (maxMidi - minMidi)) * (canvasHeight - timeHeight - noteHeight - noteSpacing);
+        const width = note.durationSeconds * 100; // 100px per second
+
+        ctx.fillStyle = '#007bff'; // Color for notes
+        ctx.fillRect(x, y, width, noteHeight);
+      });
+    }
   };
 
   return (
@@ -386,6 +453,9 @@ function App() {
               max={224}
               step={1}
             />
+          </div>
+          <div style={{ overflow: 'auto', width: '100%', height: '300px', scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1' }}>
+            <canvas ref={canvasRef} />
           </div>
         </div>
       </div>
