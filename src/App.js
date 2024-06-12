@@ -7,6 +7,8 @@ import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 import Slider from './components/Slider';
 import { TailSpin } from 'react-loader-spinner';
 import MIDI from 'midi.js';
+import * as Tone from 'tone';
+import { Midi } from '@tonejs/midi';
 
 const modelWorker = new Worker(new URL('./modelWorker.js', import.meta.url), { type: 'module' });
 const pitchWorker = new Worker(new URL('./pitchWorker.js', import.meta.url), { type: 'module' });
@@ -91,9 +93,6 @@ function App() {
         setMidiFileData(midiData);
         setShowLoader(false);
         renderMidiNotes(notes);
-        if (midiAudioRef.current) {
-          playMidi(midiData);
-        }
       } else if (type === 'error') {
         console.error('Worker error:', error);
         setShowLoader(false);
@@ -332,25 +331,51 @@ function App() {
     }
   };
 
-  const playMidi = (midiData) => {
-    MIDI.loadPlugin({
-      soundfontUrl: "./soundfont/",
-      instrument: "acoustic_grand_piano",
-      onprogress: function (state, progress) {
-        console.log(state, progress);
-      },
-      onsuccess: function () {
-        console.log(midiData)
-        const midiArray = new Uint8Array(midiData);
-        console.log(midiArray)
-        const midiBlob = new Blob([midiArray], { type: 'audio/midi' });
-        console.log(midiBlob)
-        const midiUrl = URL.createObjectURL(midiBlob);
-        console.log(midiUrl)
+  const playMidi = async (midiData) => {
+    try {
+      // Create a Blob from the MIDI data
+      const blob = new Blob([midiData], { type: 'audio/midi' });
+      // Create a URL from the Blob
+      const url = URL.createObjectURL(blob);
+      console.log("MIDI File URL:", url);
+  
+      // Fetch the MIDI file
+      const response = await fetch(url);
+      console.log(response);
+      const arrayBuffer = await response.arrayBuffer();
+      console.log(arrayBuffer);
+  
+      // Parse the MIDI file into JSON format
+      const midi = new Midi(arrayBuffer);
+      console.log(midi);
+     
+      // Create a Synth and connect it to the destination (speaker)
+      const synth = new Tone.PolySynth().toDestination();
+      console.log(synth);
+  
+      // Schedule the notes to be played
+      midi.tracks.forEach(track => {
+        track.notes.forEach(note => {
+          synth.triggerAttackRelease(
+            note.name,
+            note.duration,
+            note.time
+          );
+        });
+      });
+  
+      // Start the audio context
+      await Tone.start();
+      console.log("Playback started");
+  
+    } catch (error) {
+      console.error("Error playing MIDI with Tone.js:", error);
+    }
+  };
+  
 
-        MIDI.Player.loadFile(midiUrl, MIDI.Player.start);
-      },
-    });
+  const pauseMidi = () => {
+    MIDI.Player.pause();
   };
 
   return (
@@ -382,7 +407,7 @@ function App() {
           {fileInfo.name && (
             <audio ref={audioRef} controls />
           )}
-          
+
           <div ref={midiAudioRef}></div>
 
           <div>
@@ -408,6 +433,8 @@ function App() {
           )}
           {midiFileData && !isLoading && (
             <div className="download-button">
+              <button onClick={() => playMidi(midiFileData)}>Play MIDI</button>
+              <button onClick={pauseMidi}>Pause MIDI</button>
               <button onClick={downloadFile}>
                 Download File
               </button>
