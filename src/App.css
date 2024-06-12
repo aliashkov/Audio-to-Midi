@@ -25,6 +25,7 @@
 .right-panel {
   width: 65%;
   text-align: left;
+  overflow: hidden; 
 }
 
 .slider-row {
@@ -86,4 +87,34 @@ button:disabled {
 
 .download-button {
   margin-top: 20px;
+}
+
+.right-panel::-webkit-scrollbar {
+  width: 0.4em;
+}
+
+.right-panel::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+}
+
+.right-panel::-webkit-scrollbar-thumb {
+  background-color: #007bff;
+  outline: 1px solid slategrey;
+}
+
+.loader-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  z-index: 10; 
+}
+.loader {
+  z-index: 20;
 }
