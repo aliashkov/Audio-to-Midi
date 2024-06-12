@@ -332,7 +332,7 @@ function App() {
         ctx.fillStyle = '#007bff';
         ctx.fillRect(pianoKeyWidth, 0, progressWidth, timeHeight);
         ctx.fillStyle = '#000';
-        ctx.fillRect(pianoKeyWidth + progressWidth - 1, 0, 2, timeHeight); // Draw the stick
+        ctx.fillRect(pianoKeyWidth + progressWidth - 1, 0, 2, timeHeight); 
       };
   
       drawPianoKeys();
@@ -381,16 +381,14 @@ function App() {
         });
       });
   
-      // Start the Tone.js Transport
       await Tone.start();
       setMidiPlaying(true)
       Tone.Transport.start();
       console.log("Playback started");
   
-      // Update the current time continuously
       Tone.Transport.scheduleRepeat((time) => {
         setCurrentTime(time);
-      }, '100n'); // Adjust the interval as needed for smooth updates
+      }, '100n');
   
     } catch (error) {
       console.error("Error playing MIDI with Tone.js:", error);
