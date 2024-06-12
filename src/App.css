@@ -101,3 +101,20 @@ button:disabled {
   background-color: #007bff;
   outline: 1px solid slategrey;
 }
+
+.loader-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  z-index: 10; 
+}
+.loader {
+  z-index: 20;
+}

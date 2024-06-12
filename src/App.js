@@ -5,6 +5,7 @@ import './App.css';
 import WaveSurfer from 'wavesurfer.js';
 import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 import Slider from './components/Slider';
+import { TailSpin } from 'react-loader-spinner';
 
 const modelWorker = new Worker(new URL('./modelWorker.js', import.meta.url), { type: 'module' });
 const pitchWorker = new Worker(new URL('./pitchWorker.js', import.meta.url), { type: 'module' });
@@ -39,7 +40,7 @@ function App() {
   const progressRef = useRef(null);
 
   const timeoutRef = useRef(null);
-
+  const [showLoader, setShowLoader] = useState(false);
   const [isPending, startTransition] = useTransition();
   const canvasRef = useRef(null);
 
@@ -70,6 +71,7 @@ function App() {
         clearTimeout(timeoutRef.current);
       }
       timeoutRef.current = setTimeout(() => {
+        setShowLoader(true);
         pitchWorker.postMessage({ framesData, onsetsData, contoursData, sliderValues });
       }, 1000);
     }
@@ -81,11 +83,11 @@ function App() {
       if (type === 'result') {
         setNotesData(notes)
         setMidiFileData(midiData);
-        console.log(fileInfo)
+        setShowLoader(false);
         renderMidiNotes(notes);
-        console.log(notes);
       } else if (type === 'error') {
         console.error('Worker error:', error);
+        setShowLoader(false);
         setIsLoading(false);
       }
     };
@@ -263,37 +265,37 @@ function App() {
     if (canvas && notes) {
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
       const noteHeight = 8;
       const noteSpacing = 4;
       const pianoKeyWidth = 20;
       const timeHeight = 8;
-  
+
       const minTime = 0;
       const maxTime = parseFloat(fileInfo.duration);
       console.log(maxTime)
-  
+
       const minMidi = Math.min(...notes.map(note => note.pitchMidi));
       const maxMidi = Math.max(...notes.map(note => note.pitchMidi));
-  
-      const canvasWidth = (maxTime - minTime) * 100; 
+
+      const canvasWidth = (maxTime - minTime) * 100;
       const canvasHeight = 308;
-  
+
       canvas.width = canvasWidth + pianoKeyWidth;
       canvas.height = canvasHeight + timeHeight;
-  
+
       const drawPianoKeys = () => {
         ctx.fillStyle = '#f0f0f0';
         ctx.fillRect(0, timeHeight, pianoKeyWidth, canvasHeight - timeHeight);
-  
+
         for (let i = minMidi; i <= maxMidi; i++) {
           const y = canvasHeight - timeHeight - ((i - minMidi) / (maxMidi - minMidi)) * (canvasHeight - timeHeight - noteHeight - noteSpacing);
           ctx.fillStyle = (i % 12 === 1 || i % 12 === 3 || i % 12 === 6 || i % 12 === 8 || i % 12 === 10) ? '#000' : '#fff';
           ctx.fillRect(0, y + timeHeight, pianoKeyWidth, noteHeight);
-          ctx.strokeRect(0, y + timeHeight, pianoKeyWidth, noteHeight); 
+          ctx.strokeRect(0, y + timeHeight, pianoKeyWidth, noteHeight);
         }
       };
-  
+
       const drawTimeLabels = () => {
         ctx.fillStyle = '#000';
         for (let t = minTime; t <= maxTime; t += 1) {
@@ -306,15 +308,15 @@ function App() {
           ctx.stroke();
         }
       };
-  
+
       drawPianoKeys();
       drawTimeLabels();
-  
+
       notes.forEach((note) => {
         const x = pianoKeyWidth + (note.startTimeSeconds - minTime) * 100; // 100px per second
         const y = canvasHeight - timeHeight - ((note.pitchMidi - minMidi) / (maxMidi - minMidi)) * (canvasHeight - timeHeight - noteHeight - noteSpacing);
         const width = note.durationSeconds * 80;
-  
+
         ctx.fillStyle = '#007bff';
         ctx.fillRect(x, y + timeHeight, width, noteHeight);
       });
@@ -455,9 +457,23 @@ function App() {
               step={1}
             />
           </div>
-          <div id="canvas-container" style={{ overflow: 'auto', width: midiFileData ? '688px' : '0', height: midiFileData ? '331px' : '0', scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1', visibility: midiFileData ? 'visible' : 'hidden' }}>
-            <canvas ref={canvasRef} />
+          <div style={{ position: 'relative', width: midiFileData ? '688px' : '0', height: midiFileData ? '331px' : '0' }}>
+            {showLoader && (
+              <div className="loader-overlay">
+                <div className="loader">
+                  <TailSpin
+                    color="#007bff"
+                    height={344}
+                    width={150}
+                  />
+                </div>
+              </div>
+            )}
+            <div id="canvas-container" style={{ position: 'absolute', top: 0, left: 0, overflow: 'auto', width: '100%', height: '100%', scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1', visibility: midiFileData ? 'visible' : 'hidden' }}>
+              <canvas ref={canvasRef} />
+            </div>
           </div>
+
         </div>
       </div>
     </div>
