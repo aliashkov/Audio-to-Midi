@@ -271,6 +271,7 @@ function App() {
 
       const minTime = 0;
       const maxTime = parseInt(fileInfo.duration);
+      console.log(maxTime)
 
       const minMidi = Math.min(...notes.map(note => note.pitchMidi));
       const maxMidi = Math.max(...notes.map(note => note.pitchMidi));
@@ -297,7 +298,7 @@ function App() {
         ctx.fillStyle = '#000';
         for (let t = minTime; t <= maxTime; t += 1) { // Mark each second
           const x = pianoKeyWidth + (t - minTime) * 100; // 100px per second
-          ctx.fillText(t.toFixed(2) + 's', x, 15);
+          ctx.fillText(t.toFixed(0) + 's', x, 15);
           ctx.beginPath();
           ctx.moveTo(x, timeHeight);
           ctx.lineTo(x, canvasHeight);
@@ -375,7 +376,7 @@ function App() {
             </div>
           )}
         </div>
-        <div className="right-panel">
+        <div className="right-panel" >
           <div className="slider-row">
             <Slider
               label="Note Segmentation"
@@ -454,7 +455,7 @@ function App() {
               step={1}
             />
           </div>
-          <div style={{ overflow: 'auto', width: '100%', height: '300px', scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1' }}>
+          <div style={{ overflow: 'auto', height: '320px', scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1' }}>
             <canvas ref={canvasRef} />
           </div>
         </div>
