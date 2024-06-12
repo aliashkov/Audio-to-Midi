@@ -357,7 +357,7 @@ function App() {
       // Create a URL from the Blob
       const url = URL.createObjectURL(blob);
       console.log("MIDI File URL:", url);
-  
+     
       // Fetch the MIDI file
       const response = await fetch(url);
       console.log(response);
@@ -383,13 +383,14 @@ function App() {
   
       // Start the Tone.js Transport
       await Tone.start();
+      setMidiPlaying(true)
       Tone.Transport.start();
       console.log("Playback started");
   
       // Update the current time continuously
       Tone.Transport.scheduleRepeat((time) => {
         setCurrentTime(time);
-      }, '8n'); // Adjust the interval as needed for smooth updates
+      }, '100n'); // Adjust the interval as needed for smooth updates
   
     } catch (error) {
       console.error("Error playing MIDI with Tone.js:", error);
