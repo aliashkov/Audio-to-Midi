@@ -455,7 +455,7 @@ function App() {
               step={1}
             />
           </div>
-          <div id="canvas-container" style={{ overflow: 'auto', width: '688px', height: '331px', scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1' }}>
+          <div id="canvas-container" style={{ overflow: 'auto', width: midiFileData ? '688px' : '0', height: midiFileData ? '331px' : '0', scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1', visibility: midiFileData ? 'visible' : 'hidden' }}>
             <canvas ref={canvasRef} />
           </div>
         </div>
