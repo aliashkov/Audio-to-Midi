@@ -532,19 +532,27 @@ function App() {
       // Create a URL from the Blob
       const url = URL.createObjectURL(blob);
       console.log("MIDI File URL:", url);
-
+  
       // Fetch the MIDI file
       const response = await fetch(url);
       console.log(response);
       const arrayBuffer = await response.arrayBuffer();
       console.log(arrayBuffer);
-
+  
       // Parse the MIDI file into JSON format
       const midi = new Midi(arrayBuffer);
       console.log(midi);
-
-      // Create a new Sampler and connect it to the destination (speaker)
-
+  
+      // Stop any ongoing playback and reset parameters
+      Tone.Transport.stop();
+      setCurrentTime(0);
+  
+      // Reset MIDI playing state
+      setMidiPlaying(false);
+  
+      // Clean up any previous scheduled events
+      Tone.Transport.cancel();
+  
       // Schedule the notes to be played
       try {
         midi.tracks.forEach(track => {
@@ -557,35 +565,39 @@ function App() {
       } catch (error) {
         console.error("Error scheduling notes:", error);
       }
+  
       const endTime = Math.max(...midi.tracks.map(track => {
         return track.notes.reduce((maxTime, note) => Math.max(maxTime, note.time + note.duration), 0);
       }));
-
-
+  
+      // Schedule stopping of transport at the end of MIDI playback
       Tone.Transport.scheduleOnce(() => {
         Tone.Transport.stop();
         setMidiPlaying(false);
         setCurrentTime(0);
         console.log("Playback ended");
       }, endTime);
-
+  
+      // Start Tone.js and MIDI playback
       await Tone.start();
-      setMidiPlaying(true)
+      setMidiPlaying(true);
       Tone.Transport.start();
       console.log("Playback started");
-
+  
+      // Schedule updating current time during playback
       Tone.Transport.scheduleRepeat((time) => {
         setCurrentTime(time);
       }, '100n');
-
+  
     } catch (error) {
       console.error("Error playing MIDI with Tone.js:", error);
     }
   };
-
+  
   const pauseMidi = () => {
+    // Pause the transport and update MIDI playing state
     Tone.Transport.pause();
-    setMidiPlaying(false)
+    setMidiPlaying(false);
     console.log("Playback paused");
   };
 
