@@ -13,6 +13,9 @@ import { Midi } from '@tonejs/midi';
 const modelWorker = new Worker(new URL('./modelWorker.js', import.meta.url), { type: 'module' });
 const pitchWorker = new Worker(new URL('./pitchWorker.js', import.meta.url), { type: 'module' });
 
+let synth;
+let midi;
+
 function App() {
   const [fileInfo, setFileInfo] = useState({ name: '', duration: '' });
   const [isRecording, setIsRecording] = useState(false);
@@ -346,26 +349,25 @@ function App() {
       console.log(arrayBuffer);
   
       // Parse the MIDI file into JSON format
-      const midi = new Midi(arrayBuffer);
+      midi = new Midi(arrayBuffer);
       console.log(midi);
      
       // Create a Synth and connect it to the destination (speaker)
-      const synth = new Tone.PolySynth().toDestination();
+      synth = new Tone.PolySynth().toDestination();
       console.log(synth);
   
       // Schedule the notes to be played
       midi.tracks.forEach(track => {
         track.notes.forEach(note => {
-          synth.triggerAttackRelease(
-            note.name,
-            note.duration,
-            note.time
-          );
+          Tone.Transport.schedule((time) => {
+            synth.triggerAttackRelease(note.name, note.duration, time);
+          }, note.time);
         });
       });
   
-      // Start the audio context
+      // Start the Tone.js Transport
       await Tone.start();
+      Tone.Transport.start();
       console.log("Playback started");
   
     } catch (error) {
@@ -373,9 +375,14 @@ function App() {
     }
   };
   
-
   const pauseMidi = () => {
-    MIDI.Player.pause();
+    Tone.Transport.pause();
+    console.log("Playback paused");
+  };
+  
+  const stopMidi = () => {
+    Tone.Transport.stop();
+    console.log("Playback stopped");
   };
 
   return (
