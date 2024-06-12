@@ -6,6 +6,7 @@ import WaveSurfer from 'wavesurfer.js';
 import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 import Slider from './components/Slider';
 import { TailSpin } from 'react-loader-spinner';
+import MIDI from 'midi.js';
 
 const modelWorker = new Worker(new URL('./modelWorker.js', import.meta.url), { type: 'module' });
 const pitchWorker = new Worker(new URL('./pitchWorker.js', import.meta.url), { type: 'module' });
@@ -91,11 +92,7 @@ function App() {
         setShowLoader(false);
         renderMidiNotes(notes);
         if (midiAudioRef.current) {
-          const midiBlob = new Blob([midiData], { type: 'audio/midi' });
-          console.log(midiBlob)
-          const midiUrl = URL.createObjectURL(midiBlob);
-          console.log(midiUrl)
-          midiAudioRef.current.src = midiUrl;
+          playMidi(midiData);
         }
       } else if (type === 'error') {
         console.error('Worker error:', error);
@@ -335,6 +332,27 @@ function App() {
     }
   };
 
+  const playMidi = (midiData) => {
+    MIDI.loadPlugin({
+      soundfontUrl: "./soundfont/",
+      instrument: "acoustic_grand_piano",
+      onprogress: function (state, progress) {
+        console.log(state, progress);
+      },
+      onsuccess: function () {
+        console.log(midiData)
+        const midiArray = new Uint8Array(midiData);
+        console.log(midiArray)
+        const midiBlob = new Blob([midiArray], { type: 'audio/midi' });
+        console.log(midiBlob)
+        const midiUrl = URL.createObjectURL(midiBlob);
+        console.log(midiUrl)
+
+        MIDI.Player.loadFile(midiUrl, MIDI.Player.start);
+      },
+    });
+  };
+
   return (
     <div className="App">
       <h1>Audio to MIDI Converter</h1>
@@ -365,7 +383,7 @@ function App() {
             <audio ref={audioRef} controls />
           )}
           
-          <audio ref={midiAudioRef} controls />
+          <div ref={midiAudioRef}></div>
 
           <div>
             <div id="mic" style={{ border: '1px solid #ddd', borderRadius: '4px', marginTop: '1rem' }}></div>
