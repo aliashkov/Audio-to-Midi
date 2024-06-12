@@ -13,8 +13,105 @@ import { Midi } from '@tonejs/midi';
 const modelWorker = new Worker(new URL('./modelWorker.js', import.meta.url), { type: 'module' });
 const pitchWorker = new Worker(new URL('./pitchWorker.js', import.meta.url), { type: 'module' });
 
-let synth;
-let midi;
+const noteURLs = {
+  'A0': 'notes/0-a.wav',
+  'A#0': 'notes/0-as.wav',
+  'B0': 'notes/0-b.wav',
+  'C1': 'notes/1-c.wav',
+  'C#1': 'notes/1-cs.wav',
+  'D1': 'notes/1-d.wav',
+  'D#1': 'notes/1-ds.wav',
+  'E1': 'notes/1-e.wav',
+  'F1': 'notes/1-f.wav',
+  'F#1': 'notes/1-fs.wav',
+  'G1': 'notes/1-g.wav',
+  'G#1': 'notes/1-gs.wav',
+  'A1': 'notes/1-a.wav',
+  'A#1': 'notes/1-as.wav',
+  'B1': 'notes/1-b.wav',
+  'C2': 'notes/2-c.wav',
+  'C#2': 'notes/2-cs.wav',
+  'D2': 'notes/2-d.wav',
+  'D#2': 'notes/2-ds.wav',
+  'E2': 'notes/2-e.wav',
+  'F2': 'notes/2-f.wav',
+  'F#2': 'notes/2-fs.wav',
+  'G2': 'notes/2-g.wav',
+  'G#2': 'notes/2-gs.wav',
+  'A2': 'notes/2-a.wav',
+  'A#2': 'notes/2-as.wav',
+  'B2': 'notes/2-b.wav',
+  'C3': 'notes/3-c.wav',
+  'C#3': 'notes/3-cs.wav',
+  'D3': 'notes/3-d.wav',
+  'D#3': 'notes/3-ds.wav',
+  'E3': 'notes/3-e.wav',
+  'F3': 'notes/3-f.wav',
+  'F#3': 'notes/3-fs.wav',
+  'G3': 'notes/3-g.wav',
+  'G#3': 'notes/3-gs.wav',
+  'A3': 'notes/3-a.wav',
+  'A#3': 'notes/3-as.wav',
+  'B3': 'notes/3-b.wav',
+  'C4': 'notes/4-c.wav',
+  'C#4': 'notes/4-cs.wav',
+  'D4': 'notes/4-d.wav',
+  'D#4': 'notes/4-ds.wav',
+  'E4': 'notes/4-e.wav',
+  'F4': 'notes/4-f.wav',
+  'F#4': 'notes/4-fs.wav',
+  'G4': 'notes/4-g.wav',
+  'G#4': 'notes/4-gs.wav',
+  'A4': 'notes/4-a.wav',
+  'A#4': 'notes/4-as.wav',
+  'B4': 'notes/4-b.wav',
+  'C5': 'notes/5-c.wav',
+  'C#5': 'notes/5-cs.wav',
+  'D5': 'notes/5-d.wav',
+  'D#5': 'notes/5-ds.wav',
+  'E5': 'notes/5-e.wav',
+  'F5': 'notes/5-f.wav',
+  'F#5': 'notes/5-fs.wav',
+  'G5': 'notes/5-g.wav',
+  'G#5': 'notes/5-gs.wav',
+  'A5': 'notes/5-a.wav',
+  'A#5': 'notes/5-as.wav',
+  'B5': 'notes/5-b.wav',
+  'C6': 'notes/6-c.wav',
+  'C#6': 'notes/6-cs.wav',
+  'D6': 'notes/6-d.wav',
+  'D#6': 'notes/6-ds.wav',
+  'E6': 'notes/6-e.wav',
+  'F6': 'notes/6-f.wav',
+  'F#6': 'notes/6-fs.wav',
+  'G6': 'notes/6-g.wav',
+  'G#6': 'notes/6-gs.wav',
+  'A6': 'notes/6-a.wav',
+  'A#6': 'notes/6-as.wav',
+  'B6': 'notes/6-b.wav',
+  'C7': 'notes/7-c.wav',
+  'C#7': 'notes/7-cs.wav',
+  'D7': 'notes/7-d.wav',
+  'D#7': 'notes/7-ds.wav',
+  'E7': 'notes/7-e.wav',
+  'F7': 'notes/7-f.wav',
+  'F#7': 'notes/7-fs.wav',
+  'G7': 'notes/7-g.wav',
+  'G#7': 'notes/7-gs.wav',
+  'A7': 'notes/7-a.wav',
+  'A#7': 'notes/7-as.wav',
+  'B7': 'notes/7-b.wav',
+  'C8': 'notes/8-c.wav',
+};
+
+const sampler = new Tone.Sampler().toDestination();
+
+// Load each note into the sampler
+for (const note in noteURLs) {
+  const noteURL = noteURLs[note];
+  sampler.add(note, noteURL);
+}
+
 
 function App() {
   const [fileInfo, setFileInfo] = useState({ name: '', duration: '' });
@@ -56,6 +153,9 @@ function App() {
   const [currentTime, setCurrentTime] = useState(0);
 
   console.log(currentTime)
+
+
+
 
   useEffect(() => {
     if (arrayFileBuffer) {
@@ -277,33 +377,33 @@ function App() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-  
+
     if (canvas && notesData) {
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
       const noteHeight = 8;
       const noteSpacing = 4;
       const pianoKeyWidth = 20;
       const timeHeight = 8;
-  
+
       const minTime = 0;
       const maxTime = parseFloat(fileInfo.duration);
-  
+
       const minMidi = Math.min(...notesData.map(note => note.pitchMidi));
       const maxMidi = Math.max(...notesData.map(note => note.pitchMidi));
-  
+
       const canvasWidth = (maxTime - minTime) * 100;
       const canvasHeight = 308;
-  
+
       canvas.width = canvasWidth + pianoKeyWidth;
       canvas.height = canvasHeight + timeHeight;
-  
+
       const drawPianoKeys = () => {
         // Draw piano keys
         ctx.fillStyle = '#f0f0f0';
         ctx.fillRect(0, timeHeight, pianoKeyWidth, canvasHeight - timeHeight);
-  
+
         for (let i = minMidi; i <= maxMidi; i++) {
           const y = canvasHeight - timeHeight - ((i - minMidi) / (maxMidi - minMidi)) * (canvasHeight - timeHeight - noteHeight - noteSpacing);
           ctx.fillStyle = (i % 12 === 1 || i % 12 === 3 || i % 12 === 6 || i % 12 === 8 || i % 12 === 10) ? '#000' : '#fff';
@@ -311,7 +411,7 @@ function App() {
           ctx.strokeRect(0, y + timeHeight, pianoKeyWidth, noteHeight);
         }
       };
-  
+
       const drawTimeLabels = () => {
         // Draw time labels
         ctx.fillStyle = '#000';
@@ -325,25 +425,25 @@ function App() {
           ctx.stroke();
         }
       };
-  
+
       const drawProgress = () => {
         // Draw progress bar
         const progressWidth = canvasWidth * (currentTime / maxTime);
         ctx.fillStyle = '#007bff';
         ctx.fillRect(pianoKeyWidth, 0, progressWidth, timeHeight);
         ctx.fillStyle = '#000';
-        ctx.fillRect(pianoKeyWidth + progressWidth - 1, 0, 2, timeHeight); 
+        ctx.fillRect(pianoKeyWidth + progressWidth - 1, 0, 2, timeHeight);
       };
-  
+
       drawPianoKeys();
       drawTimeLabels();
       drawProgress();
-  
+
       notesData.forEach((note) => {
         const x = pianoKeyWidth + (note.startTimeSeconds - minTime) * 100; // 100px per second
         const y = canvasHeight - timeHeight - ((note.pitchMidi - minMidi) / (maxMidi - minMidi)) * (canvasHeight - timeHeight - noteHeight - noteSpacing);
         const width = note.durationSeconds * 80;
-  
+
         ctx.fillStyle = '#007bff';
         ctx.fillRect(x, y + timeHeight, width, noteHeight);
       });
@@ -352,33 +452,33 @@ function App() {
 
   const renderMidiNotes = (notes, currentTime) => {
     const canvas = canvasRef.current;
-  
+
     if (canvas && notes) {
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+
       const noteHeight = 8;
       const noteSpacing = 4;
       const pianoKeyWidth = 20;
       const timeHeight = 8;
-  
+
       const minTime = 0;
       const maxTime = parseFloat(fileInfo.duration);
-  
+
       const minMidi = Math.min(...notes.map(note => note.pitchMidi));
       const maxMidi = Math.max(...notes.map(note => note.pitchMidi));
-  
+
       const canvasWidth = (maxTime - minTime) * 100;
       const canvasHeight = 308;
-  
+
       canvas.width = canvasWidth + pianoKeyWidth;
       canvas.height = canvasHeight + timeHeight;
-  
+
       const drawPianoKeys = () => {
         // Draw piano keys
         ctx.fillStyle = '#f0f0f0';
         ctx.fillRect(0, timeHeight, pianoKeyWidth, canvasHeight - timeHeight);
-  
+
         for (let i = minMidi; i <= maxMidi; i++) {
           const y = canvasHeight - timeHeight - ((i - minMidi) / (maxMidi - minMidi)) * (canvasHeight - timeHeight - noteHeight - noteSpacing);
           ctx.fillStyle = (i % 12 === 1 || i % 12 === 3 || i % 12 === 6 || i % 12 === 8 || i % 12 === 10) ? '#000' : '#fff';
@@ -386,7 +486,7 @@ function App() {
           ctx.strokeRect(0, y + timeHeight, pianoKeyWidth, noteHeight);
         }
       };
-  
+
       const drawTimeLabels = () => {
         // Draw time labels
         ctx.fillStyle = '#000';
@@ -400,25 +500,25 @@ function App() {
           ctx.stroke();
         }
       };
-  
+
       const drawProgress = () => {
         // Draw progress bar
         const progressWidth = canvasWidth * (currentTime / maxTime);
         ctx.fillStyle = '#007bff';
         ctx.fillRect(pianoKeyWidth, 0, progressWidth, timeHeight);
         ctx.fillStyle = '#000';
-        ctx.fillRect(pianoKeyWidth + progressWidth - 1, 0, 2, timeHeight); 
+        ctx.fillRect(pianoKeyWidth + progressWidth - 1, 0, 2, timeHeight);
       };
-  
+
       drawPianoKeys();
       drawTimeLabels();
       drawProgress();
-  
+
       notes.forEach((note) => {
         const x = pianoKeyWidth + (note.startTimeSeconds - minTime) * 100; // 100px per second
         const y = canvasHeight - timeHeight - ((note.pitchMidi - minMidi) / (maxMidi - minMidi)) * (canvasHeight - timeHeight - noteHeight - noteSpacing);
         const width = note.durationSeconds * 80;
-  
+
         ctx.fillStyle = '#007bff';
         ctx.fillRect(x, y + timeHeight, width, noteHeight);
       });
@@ -432,34 +532,35 @@ function App() {
       // Create a URL from the Blob
       const url = URL.createObjectURL(blob);
       console.log("MIDI File URL:", url);
-     
+
       // Fetch the MIDI file
       const response = await fetch(url);
       console.log(response);
       const arrayBuffer = await response.arrayBuffer();
       console.log(arrayBuffer);
-  
+
       // Parse the MIDI file into JSON format
       const midi = new Midi(arrayBuffer);
       console.log(midi);
-  
-      // Create a Synth and connect it to the destination (speaker)
-      const synth = new Tone.PolySynth().toDestination();
-      console.log(synth);
-  
-      // Schedule the notes to be played
-      midi.tracks.forEach(track => {
-        track.notes.forEach(note => {
-          Tone.Transport.schedule((time) => {
-            synth.triggerAttackRelease(note.name, note.duration, time);
-          }, note.time);
-        });
-      });
 
+      // Create a new Sampler and connect it to the destination (speaker)
+
+      // Schedule the notes to be played
+      try {
+        midi.tracks.forEach(track => {
+          track.notes.forEach(note => {
+            Tone.Transport.schedule((time) => {
+              sampler.triggerAttackRelease(note.name, note.duration, time);
+            }, note.time);
+          });
+        });
+      } catch (error) {
+        console.error("Error scheduling notes:", error);
+      }
       const endTime = Math.max(...midi.tracks.map(track => {
         return track.notes.reduce((maxTime, note) => Math.max(maxTime, note.time + note.duration), 0);
       }));
-  
+
 
       Tone.Transport.scheduleOnce(() => {
         Tone.Transport.stop();
@@ -467,16 +568,16 @@ function App() {
         setCurrentTime(0);
         console.log("Playback ended");
       }, endTime);
-  
+
       await Tone.start();
       setMidiPlaying(true)
       Tone.Transport.start();
       console.log("Playback started");
-  
+
       Tone.Transport.scheduleRepeat((time) => {
         setCurrentTime(time);
       }, '100n');
-  
+
     } catch (error) {
       console.error("Error playing MIDI with Tone.js:", error);
     }
