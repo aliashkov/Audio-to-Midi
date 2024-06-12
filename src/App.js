@@ -53,6 +53,10 @@ function App() {
   const canvasRef = useRef(null);
   const [midiPlaying, setMidiPlaying] = useState(false);
 
+  const [currentTime, setCurrentTime] = useState(0);
+
+  console.log(currentTime)
+
   useEffect(() => {
     if (arrayFileBuffer) {
       const audioContext = new AudioContext();
@@ -271,35 +275,35 @@ function App() {
     });
   };
 
-  const renderMidiNotes = (notes) => {
+  const renderMidiNotes = (notes, currentTime) => {
     const canvas = canvasRef.current;
-    console.log(fileInfo.duration)
+  
     if (canvas && notes) {
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+  
       const noteHeight = 8;
       const noteSpacing = 4;
       const pianoKeyWidth = 20;
       const timeHeight = 8;
-
+  
       const minTime = 0;
       const maxTime = parseFloat(fileInfo.duration);
-      console.log(maxTime)
-
+  
       const minMidi = Math.min(...notes.map(note => note.pitchMidi));
       const maxMidi = Math.max(...notes.map(note => note.pitchMidi));
-
+  
       const canvasWidth = (maxTime - minTime) * 100;
       const canvasHeight = 308;
-
+  
       canvas.width = canvasWidth + pianoKeyWidth;
       canvas.height = canvasHeight + timeHeight;
-
+  
       const drawPianoKeys = () => {
+        // Draw piano keys
         ctx.fillStyle = '#f0f0f0';
         ctx.fillRect(0, timeHeight, pianoKeyWidth, canvasHeight - timeHeight);
-
+  
         for (let i = minMidi; i <= maxMidi; i++) {
           const y = canvasHeight - timeHeight - ((i - minMidi) / (maxMidi - minMidi)) * (canvasHeight - timeHeight - noteHeight - noteSpacing);
           ctx.fillStyle = (i % 12 === 1 || i % 12 === 3 || i % 12 === 6 || i % 12 === 8 || i % 12 === 10) ? '#000' : '#fff';
@@ -307,8 +311,9 @@ function App() {
           ctx.strokeRect(0, y + timeHeight, pianoKeyWidth, noteHeight);
         }
       };
-
+  
       const drawTimeLabels = () => {
+        // Draw time labels
         ctx.fillStyle = '#000';
         for (let t = minTime; t <= maxTime; t += 1) {
           const x = pianoKeyWidth + (t - minTime) * 100;
@@ -320,43 +325,53 @@ function App() {
           ctx.stroke();
         }
       };
-
+  
+      const drawProgress = () => {
+        // Draw progress bar
+        const progressWidth = canvasWidth * (currentTime / maxTime);
+        ctx.fillStyle = '#007bff';
+        ctx.fillRect(pianoKeyWidth, 0, progressWidth, timeHeight);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(pianoKeyWidth + progressWidth - 1, 0, 2, timeHeight); // Draw the stick
+      };
+  
       drawPianoKeys();
       drawTimeLabels();
-
+      drawProgress();
+  
       notes.forEach((note) => {
         const x = pianoKeyWidth + (note.startTimeSeconds - minTime) * 100; // 100px per second
         const y = canvasHeight - timeHeight - ((note.pitchMidi - minMidi) / (maxMidi - minMidi)) * (canvasHeight - timeHeight - noteHeight - noteSpacing);
         const width = note.durationSeconds * 80;
-
+  
         ctx.fillStyle = '#007bff';
         ctx.fillRect(x, y + timeHeight, width, noteHeight);
       });
     }
   };
 
-  const playMidi = async (midiData) => {
+  const playMidi = async (midiData, setCurrentTime) => {
     try {
       // Create a Blob from the MIDI data
       const blob = new Blob([midiData], { type: 'audio/midi' });
       // Create a URL from the Blob
       const url = URL.createObjectURL(blob);
       console.log("MIDI File URL:", url);
-
+  
       // Fetch the MIDI file
       const response = await fetch(url);
       console.log(response);
       const arrayBuffer = await response.arrayBuffer();
       console.log(arrayBuffer);
-
+  
       // Parse the MIDI file into JSON format
-      midi = new Midi(arrayBuffer);
+      const midi = new Midi(arrayBuffer);
       console.log(midi);
-
+  
       // Create a Synth and connect it to the destination (speaker)
-      synth = new Tone.PolySynth().toDestination();
+      const synth = new Tone.PolySynth().toDestination();
       console.log(synth);
-
+  
       // Schedule the notes to be played
       midi.tracks.forEach(track => {
         track.notes.forEach(note => {
@@ -365,13 +380,17 @@ function App() {
           }, note.time);
         });
       });
-
+  
       // Start the Tone.js Transport
       await Tone.start();
-      setMidiPlaying(true)
       Tone.Transport.start();
       console.log("Playback started");
-
+  
+      // Update the current time continuously
+      Tone.Transport.scheduleRepeat((time) => {
+        setCurrentTime(time);
+      }, '8n'); // Adjust the interval as needed for smooth updates
+  
     } catch (error) {
       console.error("Error playing MIDI with Tone.js:", error);
     }
@@ -447,7 +466,7 @@ function App() {
           )}
           {midiFileData && !isLoading && (
             <div className="download-button">
-              <button onClick={!midiPlaying ? () => playMidi(midiFileData) : pauseMidi}>
+              <button onClick={!midiPlaying ? () => playMidi(midiFileData, setCurrentTime) : pauseMidi}>
                 {midiPlaying ? 'Pause MIDI' : 'Play MIDI'}
               </button>
 
