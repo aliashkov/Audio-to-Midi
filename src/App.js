@@ -275,6 +275,81 @@ function App() {
     });
   };
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+  
+    if (canvas && notesData) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+      const noteHeight = 8;
+      const noteSpacing = 4;
+      const pianoKeyWidth = 20;
+      const timeHeight = 8;
+  
+      const minTime = 0;
+      const maxTime = parseFloat(fileInfo.duration);
+  
+      const minMidi = Math.min(...notesData.map(note => note.pitchMidi));
+      const maxMidi = Math.max(...notesData.map(note => note.pitchMidi));
+  
+      const canvasWidth = (maxTime - minTime) * 100;
+      const canvasHeight = 308;
+  
+      canvas.width = canvasWidth + pianoKeyWidth;
+      canvas.height = canvasHeight + timeHeight;
+  
+      const drawPianoKeys = () => {
+        // Draw piano keys
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, timeHeight, pianoKeyWidth, canvasHeight - timeHeight);
+  
+        for (let i = minMidi; i <= maxMidi; i++) {
+          const y = canvasHeight - timeHeight - ((i - minMidi) / (maxMidi - minMidi)) * (canvasHeight - timeHeight - noteHeight - noteSpacing);
+          ctx.fillStyle = (i % 12 === 1 || i % 12 === 3 || i % 12 === 6 || i % 12 === 8 || i % 12 === 10) ? '#000' : '#fff';
+          ctx.fillRect(0, y + timeHeight, pianoKeyWidth, noteHeight);
+          ctx.strokeRect(0, y + timeHeight, pianoKeyWidth, noteHeight);
+        }
+      };
+  
+      const drawTimeLabels = () => {
+        // Draw time labels
+        ctx.fillStyle = '#000';
+        for (let t = minTime; t <= maxTime; t += 1) {
+          const x = pianoKeyWidth + (t - minTime) * 100;
+          ctx.fillText(t.toFixed(0) + 's', x, 15);
+          ctx.beginPath();
+          ctx.moveTo(x, timeHeight);
+          ctx.lineTo(x, canvasHeight + timeHeight);
+          ctx.strokeStyle = '#e0e0e0';
+          ctx.stroke();
+        }
+      };
+  
+      const drawProgress = () => {
+        // Draw progress bar
+        const progressWidth = canvasWidth * (currentTime / maxTime);
+        ctx.fillStyle = '#007bff';
+        ctx.fillRect(pianoKeyWidth, 0, progressWidth, timeHeight);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(pianoKeyWidth + progressWidth - 1, 0, 2, timeHeight); 
+      };
+  
+      drawPianoKeys();
+      drawTimeLabels();
+      drawProgress();
+  
+      notesData.forEach((note) => {
+        const x = pianoKeyWidth + (note.startTimeSeconds - minTime) * 100; // 100px per second
+        const y = canvasHeight - timeHeight - ((note.pitchMidi - minMidi) / (maxMidi - minMidi)) * (canvasHeight - timeHeight - noteHeight - noteSpacing);
+        const width = note.durationSeconds * 80;
+  
+        ctx.fillStyle = '#007bff';
+        ctx.fillRect(x, y + timeHeight, width, noteHeight);
+      });
+    }
+  }, [notesData, currentTime])
+
   const renderMidiNotes = (notes, currentTime) => {
     const canvas = canvasRef.current;
   
@@ -380,6 +455,18 @@ function App() {
           }, note.time);
         });
       });
+
+      const endTime = Math.max(...midi.tracks.map(track => {
+        return track.notes.reduce((maxTime, note) => Math.max(maxTime, note.time + note.duration), 0);
+      }));
+  
+
+      Tone.Transport.scheduleOnce(() => {
+        Tone.Transport.stop();
+        setMidiPlaying(false);
+        setCurrentTime(0);
+        console.log("Playback ended");
+      }, endTime);
   
       await Tone.start();
       setMidiPlaying(true)
@@ -405,10 +492,6 @@ function App() {
     Tone.Transport.stop();
     console.log("Playback stopped");
   };
-
-  const togglePlayback = () => {
-
-  }
 
   return (
     <div className="App">
