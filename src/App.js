@@ -270,7 +270,7 @@ function App() {
       const timeHeight = 20;
 
       const minTime = 0;
-      const maxTime = parseInt(fileInfo.duration);
+      const maxTime = parseFloat(fileInfo.duration);
       console.log(maxTime)
 
       const minMidi = Math.min(...notes.map(note => note.pitchMidi));
@@ -455,7 +455,7 @@ function App() {
               step={1}
             />
           </div>
-          <div style={{ overflow: 'auto', height: '320px', scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1' }}>
+          <div id="canvas-container" style={{ overflow: 'auto', width: '688px', height: '300px', scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1' }}>
             <canvas ref={canvasRef} />
           </div>
         </div>
