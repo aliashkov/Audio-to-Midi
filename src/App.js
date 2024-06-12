@@ -270,7 +270,7 @@ function App() {
       const timeHeight = 20;
 
       const minTime = 0;
-      const maxTime = parseInt(fileInfo.duration)
+      const maxTime = parseInt(fileInfo.duration);
 
       const minMidi = Math.min(...notes.map(note => note.pitchMidi));
       const maxMidi = Math.max(...notes.map(note => note.pitchMidi));
