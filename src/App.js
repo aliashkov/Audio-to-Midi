@@ -38,6 +38,8 @@ function App() {
   const wavesurferRef = useRef(null);
   const recordRef = useRef(null);
   const progressRef = useRef(null);
+  const audioRef = useRef(null);
+  const midiAudioRef = useRef(null);
 
   const timeoutRef = useRef(null);
   const [showLoader, setShowLoader] = useState(false);
@@ -60,6 +62,9 @@ function App() {
             height: '80',
           });
           wavesurferRef.current.load(url);
+        }
+        if (audioRef.current) {
+          audioRef.current.src = url;
         }
       });
     }
@@ -85,6 +90,13 @@ function App() {
         setMidiFileData(midiData);
         setShowLoader(false);
         renderMidiNotes(notes);
+        if (midiAudioRef.current) {
+          const midiBlob = new Blob([midiData], { type: 'audio/midi' });
+          console.log(midiBlob)
+          const midiUrl = URL.createObjectURL(midiBlob);
+          console.log(midiUrl)
+          midiAudioRef.current.src = midiUrl;
+        }
       } else if (type === 'error') {
         console.error('Worker error:', error);
         setShowLoader(false);
@@ -349,6 +361,12 @@ function App() {
               {isRecording ? 'Stop Recording' : 'Start Recording'}
             </button>
           </div>
+          {fileInfo.name && (
+            <audio ref={audioRef} controls />
+          )}
+          
+          <audio ref={midiAudioRef} controls />
+
           <div>
             <div id="mic" style={{ border: '1px solid #ddd', borderRadius: '4px', marginTop: '1rem' }}></div>
             <p id="progress" ref={progressRef}>00:00</p>
