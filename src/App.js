@@ -6,7 +6,6 @@ import WaveSurfer from 'wavesurfer.js';
 import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 import Slider from './components/Slider';
 import { TailSpin } from 'react-loader-spinner';
-import MIDI from 'midi.js';
 import * as Tone from 'tone';
 import { Midi } from '@tonejs/midi';
 
@@ -152,9 +151,8 @@ function App() {
 
   const [currentTime, setCurrentTime] = useState(0);
 
-  console.log(currentTime)
-
-
+  const isFilePlaying = useRef(false)
+  const currentDateTimeRef = useRef(null);
 
 
   useEffect(() => {
@@ -195,7 +193,7 @@ function App() {
 
   useEffect(() => {
     pitchWorker.onmessage = function (e) {
-      const { type, midiData, notes, error, success } = e.data;
+      const { type, midiData, notes, error } = e.data;
       if (type === 'result') {
         setNotesData(notes)
         setMidiFileData(midiData);
@@ -221,7 +219,6 @@ function App() {
           setOnsetsData(onsets)
           setContoursData(contours)
           setNotesData(notes)
-          console.log(fileInfo)
           renderMidiNotes(notes);  // Add this line to render MIDI notes
           setMidiFileData(midiData);
           setIsLoading(false);
@@ -525,85 +522,85 @@ function App() {
     }
   };
 
+
+
   const playMidi = async (midiData, setCurrentTime) => {
     try {
       // Create a Blob from the MIDI data
       const blob = new Blob([midiData], { type: 'audio/midi' });
       // Create a URL from the Blob
       const url = URL.createObjectURL(blob);
-      console.log("MIDI File URL:", url);
-  
+
       // Fetch the MIDI file
       const response = await fetch(url);
-      console.log(response);
       const arrayBuffer = await response.arrayBuffer();
-      console.log(arrayBuffer);
-  
+
       // Parse the MIDI file into JSON format
       const midi = new Midi(arrayBuffer);
-      console.log(midi);
-  
+
       // Stop any ongoing playback and reset parameters
       Tone.Transport.stop();
-      setCurrentTime(0);
-  
+      //setCurrentTime(0);
+
       // Reset MIDI playing state
       setMidiPlaying(false);
-  
+
       // Clean up any previous scheduled events
       Tone.Transport.cancel();
-  
+
       // Schedule the notes to be played
       try {
         midi.tracks.forEach(track => {
           track.notes.forEach(note => {
+
             Tone.Transport.schedule((time) => {
               sampler.triggerAttackRelease(note.name, note.duration, time);
+
             }, note.time);
           });
         });
       } catch (error) {
         console.error("Error scheduling notes:", error);
       }
-  
+
       const endTime = Math.max(...midi.tracks.map(track => {
         return track.notes.reduce((maxTime, note) => Math.max(maxTime, note.time + note.duration), 0);
       }));
-  
+
       // Schedule stopping of transport at the end of MIDI playback
       Tone.Transport.scheduleOnce(() => {
         Tone.Transport.stop();
         setMidiPlaying(false);
         setCurrentTime(0);
-        console.log("Playback ended");
       }, endTime);
-  
+
       // Start Tone.js and MIDI playback
       await Tone.start();
       setMidiPlaying(true);
       Tone.Transport.start();
-      console.log("Playback started");
-  
+
+      if (isFilePlaying.current === false) {
+        currentDateTimeRef.current = Date.now()
+        isFilePlaying.current = true
+      }
+
       // Schedule updating current time during playback
       Tone.Transport.scheduleRepeat((time) => {
-        setCurrentTime(time);
+        setTimeout(() => {
+          setCurrentTime(prevTime => prevTime + 0.02);
+        }, 0)
       }, '100n');
-  
+
     } catch (error) {
       console.error("Error playing MIDI with Tone.js:", error);
     }
   };
-  
+
   const pauseMidi = () => {
     // Pause the transport and update MIDI playing state
     Tone.Transport.pause();
+    setCurrentTime(0);
     setMidiPlaying(false);
-    console.log("Playback paused");
-  };
-
-  const stopMidi = () => {
-    Tone.Transport.stop();
-    console.log("Playback stopped");
   };
 
   return (
@@ -662,7 +659,7 @@ function App() {
           {midiFileData && !isLoading && (
             <div className="download-button">
               <button onClick={!midiPlaying ? () => playMidi(midiFileData, setCurrentTime) : pauseMidi}>
-                {midiPlaying ? 'Pause MIDI' : 'Play MIDI'}
+                {midiPlaying ? 'Stop MIDI' : 'Play MIDI'}
               </button>
 
               <button onClick={downloadFile}>
