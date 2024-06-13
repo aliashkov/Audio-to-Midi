@@ -12,7 +12,7 @@ import { Midi } from '@tonejs/midi';
 const modelWorker = new Worker(new URL('./modelWorker.js', import.meta.url), { type: 'module' });
 const pitchWorker = new Worker(new URL('./pitchWorker.js', import.meta.url), { type: 'module' });
 
-const noteURLs = {
+/* const noteURLs = {
   'A0': 'notes/0-a.wav',
   'A#0': 'notes/0-as.wav',
   'B0': 'notes/0-b.wav',
@@ -101,15 +101,15 @@ const noteURLs = {
   'A#7': 'notes/7-as.wav',
   'B7': 'notes/7-b.wav',
   'C8': 'notes/8-c.wav',
-};
+}; */
 
-const sampler = new Tone.Sampler().toDestination();
+//const sampler = new Tone.Sampler().toDestination();
 
 // Load each note into the sampler
-for (const note in noteURLs) {
+/* for (const note in noteURLs) {
   const noteURL = noteURLs[note];
   sampler.add(note, noteURL);
-}
+} */
 
 
 function App() {
@@ -552,6 +552,8 @@ function App() {
 
       // Parse the MIDI file into JSON format
       const midi = new Midi(arrayBuffer);
+
+      const sampler = new Tone.PolySynth().toDestination();
 
       // Stop any ongoing playback and reset parameters
       Tone.Transport.stop();
