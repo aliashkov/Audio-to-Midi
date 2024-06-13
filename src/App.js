@@ -154,7 +154,7 @@ function App() {
   const isFilePlaying = useRef(false)
   const currentDateTimeRef = useRef(null);
 
-  const [isMobile, setIsMobile] = useState(false); 
+  const [isMobile, setIsMobile] = useState(false);
 
   const checkIsMobile = () => {
     const screenWidth = window.innerWidth;
@@ -679,81 +679,102 @@ function App() {
               </button>
             </div>
           )}
-          {isMobile && ( 
-            <div className="slider-mobile-row">
-            <Slider
-              label="Note Segmentation"
-              name="slider1"
-              value={sliderValues.slider1}
-              onChange={handleSliderChange}
-              minLabel="Split Notes"
-              maxLabel="Merge Notes"
-              description="Controls the segmentation of notes"
-              min={0.05}
-              max={1}
-              step={0.05}
-            />
-            <Slider
-              label="Model Confidence Threshold"
-              name="slider2"
-              value={sliderValues.slider2}
-              onChange={handleSliderChange}
-              minLabel="More Notes"
-              maxLabel="Fewer Notes"
-              description="Sets the confidence threshold for the model"
-              min={0.05}
-              max={1}
-              step={0.05}
-            />
-            <Slider
-              label="Minimum Pitch"
-              name="slider3"
-              value={sliderValues.slider3}
-              onChange={handleSliderChange}
-              minLabel="Lower notes"
-              maxLabel="Higher notes"
-              description="Specifies the minimum pitch value, Hz"
-              min={0}
-              max={2000}
-              step={10}
-            />
-            <Slider
-              label="Maximum Pitch"
-              name="slider4"
-              value={sliderValues.slider4}
-              onChange={handleSliderChange}
-              minLabel="Lower notes"
-              maxLabel="Higher notes"
-              description="Specifies the maximum pitch value, Hz"
-              min={40}
-              max={3000}
-              step={10}
-            />
-            <Slider
-              label="Minimum Note Length"
-              name="slider5"
-              value={sliderValues.slider5}
-              onChange={handleSliderChange}
-              minLabel="Short Notes"
-              maxLabel="Long Notes"
-              description="Defines the minimum length of notes, in ms"
-              min={3}
-              max={50}
-              step={1}
-            />
-            <Slider
-              label="MIDI File Tempo"
-              name="slider6"
-              value={sliderValues.slider6}
-              onChange={handleSliderChange}
-              minLabel="Lower value"
-              maxLabel="Higher value"
-              description="Adjusts the tempo of the MIDI file"
-              min={24}
-              max={224}
-              step={1}
-            />
-          </div>
+          {isMobile && (
+            <>
+              <div className="slider-mobile-row">
+                <Slider
+                  label="Note Segmentation"
+                  name="slider1"
+                  value={sliderValues.slider1}
+                  onChange={handleSliderChange}
+                  minLabel="Split Notes"
+                  maxLabel="Merge Notes"
+                  description="Controls the segmentation of notes"
+                  min={0.05}
+                  max={1}
+                  step={0.05}
+                />
+                <Slider
+                  label="Model Confidence Threshold"
+                  name="slider2"
+                  value={sliderValues.slider2}
+                  onChange={handleSliderChange}
+                  minLabel="More Notes"
+                  maxLabel="Fewer Notes"
+                  description="Sets the confidence threshold for the model"
+                  min={0.05}
+                  max={1}
+                  step={0.05}
+                />
+                <Slider
+                  label="Minimum Pitch"
+                  name="slider3"
+                  value={sliderValues.slider3}
+                  onChange={handleSliderChange}
+                  minLabel="Lower notes"
+                  maxLabel="Higher notes"
+                  description="Specifies the minimum pitch value, Hz"
+                  min={0}
+                  max={2000}
+                  step={10}
+                />
+                <Slider
+                  label="Maximum Pitch"
+                  name="slider4"
+                  value={sliderValues.slider4}
+                  onChange={handleSliderChange}
+                  minLabel="Lower notes"
+                  maxLabel="Higher notes"
+                  description="Specifies the maximum pitch value, Hz"
+                  min={40}
+                  max={3000}
+                  step={10}
+                />
+                <Slider
+                  label="Minimum Note Length"
+                  name="slider5"
+                  value={sliderValues.slider5}
+                  onChange={handleSliderChange}
+                  minLabel="Short Notes"
+                  maxLabel="Long Notes"
+                  description="Defines the minimum length of notes, in ms"
+                  min={3}
+                  max={50}
+                  step={1}
+                />
+                <Slider
+                  label="MIDI File Tempo"
+                  name="slider6"
+                  value={sliderValues.slider6}
+                  onChange={handleSliderChange}
+                  minLabel="Lower value"
+                  maxLabel="Higher value"
+                  description="Adjusts the tempo of the MIDI file"
+                  min={24}
+                  max={224}
+                  step={1}
+                />
+              </div>
+
+              <div style={{ position: 'relative', width: midiFileData ? '100%' : '0', height: midiFileData ? '331px' : '0' }}>
+                {showLoader && (
+                  <div className="loader-overlay">
+                    <div className="loader">
+                      <TailSpin
+                        color="#007bff"
+                        height={344}
+                        width={150}
+                      />
+                    </div>
+                  </div>
+                )}
+                <div id="canvas-container" style={{ position: 'absolute', top: 0, left: 0, overflow: 'auto', width: '100%', height: '100%', scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1', visibility: midiFileData ? 'visible' : 'hidden' }}>
+                  <canvas ref={canvasRef} />
+                </div>
+              </div>
+            </>
+
+
           )}
           {/* <div className="slider-mobile-row">
             <Slider
@@ -834,103 +855,103 @@ function App() {
         </div>
 
 
-        {!isMobile && ( 
+        {!isMobile && (
           <div className="right-panel" >
-          <div className="slider-row">
-            <Slider
-              label="Note Segmentation"
-              name="slider1"
-              value={sliderValues.slider1}
-              onChange={handleSliderChange}
-              minLabel="Split Notes"
-              maxLabel="Merge Notes"
-              description="Controls the segmentation of notes"
-              min={0.05}
-              max={1}
-              step={0.05}
-            />
-            <Slider
-              label="Model Confidence Threshold"
-              name="slider2"
-              value={sliderValues.slider2}
-              onChange={handleSliderChange}
-              minLabel="More Notes"
-              maxLabel="Fewer Notes"
-              description="Sets the confidence threshold for the model"
-              min={0.05}
-              max={1}
-              step={0.05}
-            />
-          </div>
-          <div className="slider-row">
-            <Slider
-              label="Minimum Pitch"
-              name="slider3"
-              value={sliderValues.slider3}
-              onChange={handleSliderChange}
-              minLabel="Lower notes"
-              maxLabel="Higher notes"
-              description="Specifies the minimum pitch value, Hz"
-              min={0}
-              max={2000}
-              step={10}
-            />
-            <Slider
-              label="Maximum Pitch"
-              name="slider4"
-              value={sliderValues.slider4}
-              onChange={handleSliderChange}
-              minLabel="Lower notes"
-              maxLabel="Higher notes"
-              description="Specifies the maximum pitch value, Hz"
-              min={40}
-              max={3000}
-              step={10}
-            />
-          </div>
-          <div className="slider-row">
-            <Slider
-              label="Minimum Note Length"
-              name="slider5"
-              value={sliderValues.slider5}
-              onChange={handleSliderChange}
-              minLabel="Short Notes"
-              maxLabel="Long Notes"
-              description="Defines the minimum length of notes, in ms"
-              min={3}
-              max={50}
-              step={1}
-            />
-            <Slider
-              label="MIDI File Tempo"
-              name="slider6"
-              value={sliderValues.slider6}
-              onChange={handleSliderChange}
-              minLabel="Lower value"
-              maxLabel="Higher value"
-              description="Adjusts the tempo of the MIDI file"
-              min={24}
-              max={224}
-              step={1}
-            />
-          </div>
-          <div style={{ position: 'relative', width: midiFileData ? '688px' : '0', height: midiFileData ? '331px' : '0' }}>
-            {showLoader && (
-              <div className="loader-overlay">
-                <div className="loader">
-                  <TailSpin
-                    color="#007bff"
-                    height={344}
-                    width={150}
-                  />
+            <div className="slider-row">
+              <Slider
+                label="Note Segmentation"
+                name="slider1"
+                value={sliderValues.slider1}
+                onChange={handleSliderChange}
+                minLabel="Split Notes"
+                maxLabel="Merge Notes"
+                description="Controls the segmentation of notes"
+                min={0.05}
+                max={1}
+                step={0.05}
+              />
+              <Slider
+                label="Model Confidence Threshold"
+                name="slider2"
+                value={sliderValues.slider2}
+                onChange={handleSliderChange}
+                minLabel="More Notes"
+                maxLabel="Fewer Notes"
+                description="Sets the confidence threshold for the model"
+                min={0.05}
+                max={1}
+                step={0.05}
+              />
+            </div>
+            <div className="slider-row">
+              <Slider
+                label="Minimum Pitch"
+                name="slider3"
+                value={sliderValues.slider3}
+                onChange={handleSliderChange}
+                minLabel="Lower notes"
+                maxLabel="Higher notes"
+                description="Specifies the minimum pitch value, Hz"
+                min={0}
+                max={2000}
+                step={10}
+              />
+              <Slider
+                label="Maximum Pitch"
+                name="slider4"
+                value={sliderValues.slider4}
+                onChange={handleSliderChange}
+                minLabel="Lower notes"
+                maxLabel="Higher notes"
+                description="Specifies the maximum pitch value, Hz"
+                min={40}
+                max={3000}
+                step={10}
+              />
+            </div>
+            <div className="slider-row">
+              <Slider
+                label="Minimum Note Length"
+                name="slider5"
+                value={sliderValues.slider5}
+                onChange={handleSliderChange}
+                minLabel="Short Notes"
+                maxLabel="Long Notes"
+                description="Defines the minimum length of notes, in ms"
+                min={3}
+                max={50}
+                step={1}
+              />
+              <Slider
+                label="MIDI File Tempo"
+                name="slider6"
+                value={sliderValues.slider6}
+                onChange={handleSliderChange}
+                minLabel="Lower value"
+                maxLabel="Higher value"
+                description="Adjusts the tempo of the MIDI file"
+                min={24}
+                max={224}
+                step={1}
+              />
+            </div>
+            <div style={{ position: 'relative', width: midiFileData ? '688px' : '0', height: midiFileData ? '331px' : '0' }}>
+              {showLoader && (
+                <div className="loader-overlay">
+                  <div className="loader">
+                    <TailSpin
+                      color="#007bff"
+                      height={344}
+                      width={150}
+                    />
+                  </div>
                 </div>
+              )}
+              <div id="canvas-container" style={{ position: 'absolute', top: 0, left: 0, overflow: 'auto', width: '100%', height: '100%', scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1', visibility: midiFileData ? 'visible' : 'hidden' }}>
+                <canvas ref={canvasRef} />
               </div>
-            )}
-            <div id="canvas-container" style={{ position: 'absolute', top: 0, left: 0, overflow: 'auto', width: '100%', height: '100%', scrollbarWidth: 'thin', scrollbarColor: '#888 #f1f1f1', visibility: midiFileData ? 'visible' : 'hidden' }}>
-              <canvas ref={canvasRef} />
             </div>
           </div>
-        </div>
         )}
 
       </div>
