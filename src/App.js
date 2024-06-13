@@ -552,10 +552,8 @@ function App() {
       try {
         midi.tracks.forEach(track => {
           track.notes.forEach(note => {
-
             Tone.Transport.schedule((time) => {
               sampler.triggerAttackRelease(note.name, note.duration, time);
-
             }, note.time);
           });
         });
@@ -580,16 +578,14 @@ function App() {
       Tone.Transport.start();
 
       if (isFilePlaying.current === false) {
-        currentDateTimeRef.current = Date.now()
-        isFilePlaying.current = true
+        currentDateTimeRef.current = Date.now();
+        isFilePlaying.current = true;
       }
 
       // Schedule updating current time during playback
-      Tone.Transport.scheduleRepeat((time) => {
-        setTimeout(() => {
-          setCurrentTime(prevTime => prevTime + 0.02);
-        }, 0)
-      }, '100n');
+      Tone.Transport.scheduleRepeat(() => {
+        setCurrentTime(Tone.Transport.seconds);
+      }, '0.02');
 
     } catch (error) {
       console.error("Error playing MIDI with Tone.js:", error);
@@ -599,10 +595,11 @@ function App() {
   const pauseMidi = () => {
     // Pause the transport and update MIDI playing state
     Tone.Transport.pause();
-    setCurrentTime(0);
+    setCurrentTime(Tone.Transport.seconds);
     setMidiPlaying(false);
   };
 
+  
   return (
     <div className="App">
       <h1>Audio to MIDI Converter</h1>
