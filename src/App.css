@@ -5,7 +5,6 @@
   background: white;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   width: 100%;
-  min-width: 1100px;
   margin: auto;
 }
 
@@ -39,6 +38,10 @@
 
 .slider-row .slider-container:first-child {
   margin-right: 35px;
+}
+
+.slider-mobile-row {
+  visibility: hidden;
 }
 
 button {
@@ -117,4 +120,16 @@ button:disabled {
 }
 .loader {
   z-index: 20;
+}
+
+@media (max-width: 868px) {
+  .left-panel {
+    width: 100%;
+    border-right: 0px;
+  }
+  
+  .right-panel {
+    width: 0%;
+    visibility: hidden;
+  }
 }

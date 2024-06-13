@@ -154,6 +154,22 @@ function App() {
   const isFilePlaying = useRef(false)
   const currentDateTimeRef = useRef(null);
 
+  const [isMobile, setIsMobile] = useState(false); // State to track mobile status
+
+  const checkIsMobile = () => {
+    const screenWidth = window.innerWidth;
+    setIsMobile(screenWidth <= 868); // Adjust threshold as needed
+  };
+
+  // Use useEffect to run the check on component mount and window resize
+  useEffect(() => {
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, []); // Empty dependency array ensures this effect runs only on mount and unmount
+
 
   useEffect(() => {
     if (arrayFileBuffer) {
@@ -599,7 +615,7 @@ function App() {
     setMidiPlaying(false);
   };
 
-  
+
   return (
     <div className="App">
       <h1>Audio to MIDI Converter</h1>
@@ -664,8 +680,87 @@ function App() {
               </button>
             </div>
           )}
+          {/* <div className="slider-mobile-row">
+            <Slider
+              label="Note Segmentation"
+              name="slider1"
+              value={sliderValues.slider1}
+              onChange={handleSliderChange}
+              minLabel="Split Notes"
+              maxLabel="Merge Notes"
+              description="Controls the segmentation of notes"
+              min={0.05}
+              max={1}
+              step={0.05}
+            />
+            <Slider
+              label="Model Confidence Threshold"
+              name="slider2"
+              value={sliderValues.slider2}
+              onChange={handleSliderChange}
+              minLabel="More Notes"
+              maxLabel="Fewer Notes"
+              description="Sets the confidence threshold for the model"
+              min={0.05}
+              max={1}
+              step={0.05}
+            />
+            <Slider
+              label="Minimum Pitch"
+              name="slider3"
+              value={sliderValues.slider3}
+              onChange={handleSliderChange}
+              minLabel="Lower notes"
+              maxLabel="Higher notes"
+              description="Specifies the minimum pitch value, Hz"
+              min={0}
+              max={2000}
+              step={10}
+            />
+            <Slider
+              label="Maximum Pitch"
+              name="slider4"
+              value={sliderValues.slider4}
+              onChange={handleSliderChange}
+              minLabel="Lower notes"
+              maxLabel="Higher notes"
+              description="Specifies the maximum pitch value, Hz"
+              min={40}
+              max={3000}
+              step={10}
+            />
+            <Slider
+              label="Minimum Note Length"
+              name="slider5"
+              value={sliderValues.slider5}
+              onChange={handleSliderChange}
+              minLabel="Short Notes"
+              maxLabel="Long Notes"
+              description="Defines the minimum length of notes, in ms"
+              min={3}
+              max={50}
+              step={1}
+            />
+            <Slider
+              label="MIDI File Tempo"
+              name="slider6"
+              value={sliderValues.slider6}
+              onChange={handleSliderChange}
+              minLabel="Lower value"
+              maxLabel="Higher value"
+              description="Adjusts the tempo of the MIDI file"
+              min={24}
+              max={224}
+              step={1}
+            />
+          </div> */}
+
+
         </div>
-        <div className="right-panel" >
+
+
+        {!isMobile && ( 
+          <div className="right-panel" >
           <div className="slider-row">
             <Slider
               label="Note Segmentation"
@@ -760,8 +855,9 @@ function App() {
               <canvas ref={canvasRef} />
             </div>
           </div>
-
         </div>
+        )}
+
       </div>
     </div>
   );
